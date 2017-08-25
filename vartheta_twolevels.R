@@ -6,6 +6,8 @@
 # Equations for variance of treatment effect
 # Mean and individual level
 
+library(ltsa)
+
 vartheta_mean <- function(Vi, Xmat){
   # Calculates the variance of the treatment effect, theta, for a model at the
   # cluster mean level with a particular treatment schedule
@@ -22,7 +24,7 @@ vartheta_mean <- function(Vi, Xmat){
   return(var)
 }
 
-vartheta_ind <- function(Vi, Xmat){
+vartheta_ind <- function(Vi, Xmat, Toeplitz=TRUE){
   # Calculates the variance of the treatment effect, theta, for a model at the
   # individual level with a particular treatment schedule
   #
@@ -34,7 +36,7 @@ vartheta_ind <- function(Vi, Xmat){
   Tp <- ncol(Xmat)
   m <- nrow(Vi)/Tp
   # If continuous time matrix, use Toeplitz inversion algorithm
-  if(Vi[1,2]!=Vi[1,3]){
+  if(Toeplitz){ # Could check for Vi[1,2]!=Vi[1,3] but w/ simulated times won't be Toeplitz
     Vi_inv <- TrenchInverse(Vi)
   } else{
     Vi_inv <- solve(Vi)
