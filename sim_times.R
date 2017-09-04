@@ -12,18 +12,14 @@ library(grid)
 
 source('vartheta_twolevels.R')
 
-Tp <- 4
-m <- 50
-rho0 <- 0.035
-
-Vicontsim <- function(r, Tp, m, rho0){ # Include meanlvl option? # Include option to generate matrix of times?
-  # Constructs the variance matrix for a single cluster, Vi, under the
-  # continuous time model at the individual level with arrival times
+Vicontsim <- function(Tp, m, rho0){
+  # Returns a function for the variance matrix for a single cluster, Vi,
+  # in terms of the base correlation, r (where rate of decay is 1-r),
+  # under the continuous time model at the individual level with arrival times
   # randomly drawn from a uniform distribution, i.e. WITHOUT the assumption
-  # of evenly placed arrival times.
+  # of evenly spaced arrival times.
   #
   # Inputs:
-  # r - base correlation term; rate of decay is given by (1-r)
   # Tp - number of time periods
   # m - number of individuals per cluster
   # rho0 - proportion of total variation attributed to cluster-period random effects
@@ -38,14 +34,36 @@ Vicontsim <- function(r, Tp, m, rho0){ # Include meanlvl option? # Include optio
   j <- rep(1:Tp, each=m) # Create vector of time period indices and add to fractional times
   times <- sort(j + x) # Combine to create arrival times
   
-  A <- matrix(raw(), Tp*m, Tp*m)
-  Vi <- diag(sig2E, Tp*m) +
+  Vi <- function(r){
+    A <- matrix(raw(), Tp*m, Tp*m)
+    diag(sig2E, Tp*m) +
         sig2CP*(r^(abs(matrix(times[col(A)], Tp*m, Tp*m) -
                        matrix(times[row(A)], Tp*m, Tp*m))))
+  }
   return(Vi)
 }
 
-get_variance_sim <- function(r, Tp, m, rho0, nsims){
+variances_sim <- function(rs, Tp, m, rho0){
+  # Calculates the variance of the treatment effect under the
+  # continuous time model at the individual level with simulated
+  # arrival times from a uniform distribution, with trial designs:
+  #    - stepped wedge (SW)
+  #    - cluster randomised crossover (CRXO)
+  #    - parallel (pllel)
+  #    - parallel with baseline (pllelbase)
+  
+  Vs <- Vicontsim(Tp, m, rho0)
+  varmats <- llply(rs, Vs) # Creates a list of covariance matrices for the values in rs
+  scalefactor <- Tp/(Tp-1)
+  vals <- data.frame(decay = 1-rs,
+                     SW = laply(varmats, vartheta_ind, Xmat=SWdesmat(Tp), Toeplitz=FALSE),
+                     crxo = scalefactor*laply(varmats, vartheta_ind, Xmat=crxodesmat(Tp), Toeplitz=FALSE),
+                     pllel = scalefactor*laply(varmats, vartheta_ind, Xmat=plleldesmat(Tp), Toeplitz=FALSE),
+                     pllelbase = scalefactor*laply(varmats, vartheta_ind, Xmat=pllelbasedesmat(Tp), Toeplitz=FALSE))
+  return(vals)
+}
+
+sim_results <- function(nsims, rs, Tp, m, rho0){
   # Calculates the variance of the treatment effect under the model:
   #    - continuous time (ct)
   # using simulated arrival times, with trial designs:
@@ -53,37 +71,43 @@ get_variance_sim <- function(r, Tp, m, rho0, nsims){
   #    - cluster randomised crossover (CRXO)
   #    - parallel (pllel)
   #    - parallel with baseline (pllelbase)
-  #
-  # Inputs:
-  # r - base correlation term
-  # Tp - number of time periods in the trial
-  # m - number of subjects measured in each time period
-  # rho0 - base correlation between a pair of subjects
-  #
-  # Example usage: val <- get_variance_sim(r=0.6, Tp=4, m=50, rho0=0.035)
+  # and returns the average, minimum and maximum observed variances
+  # for each design
 
-  # Generate covariance matrix using randomly generated arrival times
-  ctvarmat <- replicate(nsims, Vicontsim(r, Tp, m, rho0), simplify=FALSE)
-
-  # Get the variance of the treatment effect under the different designs
-  # Scale the non-SW variances by (Tp/(Tp-1)) to account for uneven clusters across designs
-  scalefactor <- Tp/(Tp-1)
-  vals <- data.frame(SW = laply(ctvarmat, vartheta_ind, Xmat=SWdesmat(Tp), Toeplitz=FALSE),
-                     crxo = scalefactor*laply(ctvarmat, vartheta_ind, Xmat=crxodesmat(Tp), Toeplitz=FALSE),
-                     pllel = scalefactor*laply(ctvarmat, vartheta_ind, Xmat=plleldesmat(Tp), Toeplitz=FALSE),
-                     pllelbase = scalefactor*laply(ctvarmat, vartheta_ind, Xmat=pllelbasedesmat(Tp), Toeplitz=FALSE))
-  sumvals <- data.frame(decay=1-r,
-                        SWmin = min(vals$SW), SWavg = mean(vals$SW), SWmax = max(vals$SW),
-                        crxomin = min(vals$crxo), crxoavg = mean(vals$crxo), crxomax = max(vals$crxo),
-                        pllelmin = min(vals$pllel), pllelavg = mean(vals$pllel), pllelmax = max(vals$pllel),
-                        pllelbasemin = min(vals$pllelbase), pllelbaseavg = mean(vals$pllelbase),
-                        pllelbasemax = max(vals$pllelbase))
-  return(sumvals)
+  simvalslist <- replicate(nsims, variances_sim(rs, Tp, m, rho0), simplify=FALSE)
+  
+  nrows <- length(rs)
+  SWvals <- matrix(numeric(0), nrows, nsims)
+  crxovals <- matrix(numeric(0), nrows, nsims)
+  pllelvals <- matrix(numeric(0), nrows, nsims)
+  pllelbasevals <- matrix(numeric(0), nrows, nsims)
+  for (i in 1:nsims){
+    SWvals[,i] <- simvalslist[[i]]$SW
+    crxovals[,i] <- simvalslist[[i]]$crxo
+    pllelvals[,i] <- simvalslist[[i]]$pllel
+    pllelbasevals[,i] <- simvalslist[[i]]$pllelbase
+  }
+  simvals <- data.frame(decay=1-rs,
+                        SWmin = apply(SWvals, 1, min),
+                        SWavg = apply(SWvals, 1, mean),
+                        SWmax = apply(SWvals, 1, max),
+                        crxomin = apply(crxovals, 1, min),
+                        crxoavg = apply(crxovals, 1, mean),
+                        crxomax = apply(crxovals, 1, max),
+                        pllelmin = apply(pllelvals, 1, min),
+                        pllelavg = apply(pllelvals, 1, mean),
+                        pllelmax = apply(pllelvals, 1, max),
+                        pllelbasemin = apply(pllelbasevals, 1, min),
+                        pllelbaseavg = apply(pllelbasevals, 1, mean),
+                        pllelbasemax = apply(pllelbasevals, 1, max))
+  return(simvals)
 }
 
-rs <- seq(0.5, 1, 0.01)
-simvalslist <- llply(rs, get_variance_sim, Tp, m, rho0, nsims=100)
-simvals <- do.call("rbind", simvalslist)
+Tp <- 4
+m <- 50
+rho0 <- 0.035
+
+simvals <- sim_results(nsims=100, rs=seq(0.5, 1, 0.01), Tp=Tp, m=m, rho0=rho0)
 
 # Convert for plotting
 simvals_long <- simvals %>%
@@ -91,6 +115,7 @@ simvals_long <- simvals %>%
                   separate(col, c("design", "measure"), sep=-4) %>%
                   spread(measure, variance)
 
+# Plot simulation results
 pctsim <- ggplot(data=simvals_long, aes(x=decay, group=design, colour=design)) +
   geom_line(aes(y=avg), size=1.0) +
   geom_ribbon(aes(ymin=min, ymax=max, fill=design), alpha=0.3, show.legend=FALSE) +
@@ -120,7 +145,7 @@ varvals <- merge(simvals_long, ctvarvals_long)
 
 pctall <- ggplot(data=varvals, aes(x=decay, group=design, colour=design)) +
   geom_line(aes(y=avg), size=1.0) +
-  geom_line(aes(y=variances), size=1.0, colour='black') +
+  geom_line(aes(y=variances), size=1.0, colour='black', linetype="longdash") +
   geom_ribbon(aes(ymin=min, ymax=max, fill=design), alpha=0.3, show.legend=FALSE) +
   expand_limits(y=0) +
   xlab("Decay (1-r)") +
@@ -136,4 +161,3 @@ pctall <- ggplot(data=varvals, aes(x=decay, group=design, colour=design)) +
         legend.title=element_text(size=16), legend.text=element_text(size=14),
         legend.position="bottom")
 ggsave(paste0("plots/conts_sim_compare_T", Tp, "_m", m, ".pdf"), pctall, width=297, height=210, units="mm")
-
