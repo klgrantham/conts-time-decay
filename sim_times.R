@@ -12,7 +12,7 @@ library(grid)
 
 source('vartheta_twolevels.R')
 
-Vicontsim <- function(Tp, m, rho0){
+Vicontsim <- function(Tp, m, rho0, type="uniform"){
   # Returns a function for the variance matrix for a single cluster, Vi,
   # in terms of the base correlation, r (where rate of decay is 1-r),
   # under the continuous time model at the individual level with arrival times
@@ -29,10 +29,20 @@ Vicontsim <- function(Tp, m, rho0){
   sig2E <- totalvar - sig2CP
 
   # Generate arrival times
-  x <- runif(Tp*m, 0, 1) # Generate vector of fractional times
-  # Note: Does not sample from extreme values (should allow this)
-  j <- rep(1:Tp, each=m) # Create vector of time period indices and add to fractional times
-  times <- sort(j + x) # Combine to create arrival times
+  if (type=="uniform"){
+    x <- runif(Tp*m, 0, 1) # Generate vector of fractional times
+    # Note: Does not sample from extreme values (should allow this)
+    j <- rep(1:Tp, each=m) # Create vector of time period indices and add to fractional times
+    times <- sort(j + x) # Combine to create arrival times
+  } else if (type=="exponential"){
+    x <- matrix(rexp(Tp*m), m, Tp)
+    colmaxs <- apply(x, 2, max)
+    y <- x %*% diag(1/colmaxs)
+    colmins <- apply(y, 2, min)
+    z <- t(t(y) - colmins)
+    j <- matrix(1:Tp, m, Tp, byrow=TRUE)
+    times <- sort(as.vector(z + j))
+  }
   
   Vi <- function(r){
     A <- matrix(raw(), Tp*m, Tp*m)
@@ -43,7 +53,7 @@ Vicontsim <- function(Tp, m, rho0){
   return(Vi)
 }
 
-variances_sim <- function(rs, Tp, m, rho0){
+variances_sim <- function(rs, Tp, m, rho0, type="uniform"){
   # Calculates the variance of the treatment effect under the
   # continuous time model at the individual level with simulated
   # arrival times from a uniform distribution, with trial designs:
@@ -52,7 +62,7 @@ variances_sim <- function(rs, Tp, m, rho0){
   #    - parallel (pllel)
   #    - parallel with baseline (pllelbase)
   
-  Vs <- Vicontsim(Tp, m, rho0)
+  Vs <- Vicontsim(Tp, m, rho0, type)
   varmats <- llply(rs, Vs) # Creates a list of covariance matrices for the values in rs
   scalefactor <- Tp/(Tp-1)
   vals <- data.frame(decay = 1-rs,
@@ -63,7 +73,7 @@ variances_sim <- function(rs, Tp, m, rho0){
   return(vals)
 }
 
-sim_results <- function(nsims, rs, Tp, m, rho0){
+sim_results <- function(nsims, rs, Tp, m, rho0, type="uniform"){
   # Calculates the variance of the treatment effect under the model:
   #    - continuous time (ct)
   # using simulated arrival times, with trial designs:
@@ -74,7 +84,7 @@ sim_results <- function(nsims, rs, Tp, m, rho0){
   # and returns the average, minimum and maximum observed variances
   # for each design
 
-  simvalslist <- replicate(nsims, variances_sim(rs, Tp, m, rho0), simplify=FALSE)
+  simvalslist <- replicate(nsims, variances_sim(rs, Tp, m, rho0, type), simplify=FALSE)
   
   nrows <- length(rs)
   SWvals <- matrix(numeric(0), nrows, nsims)
@@ -107,7 +117,8 @@ Tp <- 4
 m <- 50
 rho0 <- 0.035
 
-simvals <- sim_results(nsims=100, rs=seq(0.5, 1, 0.01), Tp=Tp, m=m, rho0=rho0)
+simvals <- sim_results(nsims=100, rs=seq(0.5, 1, 0.01), Tp=Tp, m=m, rho0=rho0, type="uniform")
+simvalsexp <- sim_results(nsims=100, rs=seq(0.5, 1, 0.01), Tp=Tp, m=m, rho0=rho0, type="exponential")
 
 # Convert for plotting
 simvals_long <- simvals %>%
