@@ -113,62 +113,49 @@ sim_results <- function(nsims, rs, Tp, m, rho0, type="uniform"){
   return(simvals)
 }
 
-Tp <- 4
-m <- 50
-rho0 <- 0.035
 
-simvals <- sim_results(nsims=100, rs=seq(0.5, 1, 0.01), Tp=Tp, m=m, rho0=rho0, type="uniform")
-simvalsexp <- sim_results(nsims=100, rs=seq(0.5, 1, 0.01), Tp=Tp, m=m, rho0=rho0, type="exponential")
+sim_results_plots <- function(nsims=100, rs=seq(0.5, 1, 0.01), Tp, m, rho0, type="uniform"){
 
-# Convert for plotting
-simvals_long <- simvals %>%
-                  gather(col, variance, -decay) %>%
-                  separate(col, c("design", "measure"), sep=-4) %>%
-                  spread(measure, variance)
+  simvals <- sim_results(nsims=nsims, rs=rs, Tp=Tp, m=m, rho0=rho0, type=type)
+  save(simvals, file=paste0("plots/vars_sim_", type, "_T", Tp, "_m", m, "_rho", rho0char, ".Rda"))
 
-# Plot simulation results
-pctsim <- ggplot(data=simvals_long, aes(x=decay, group=design, colour=design)) +
-  geom_line(aes(y=avg), size=1.0) +
-  geom_ribbon(aes(ymin=min, ymax=max, fill=design), alpha=0.3, show.legend=FALSE) +
-  expand_limits(y=0) +
-  xlab("Decay (1-r)") +
-  ylab("Variance") +
-  labs(title="Variances of treatment effect, continuous time, simulation",
-       subtitle=bquote(paste(T==.(Tp), ", ", m==.(m), ", ", rho[0]==.(rho0)))) +
-  scale_color_hue(labels = c("CRXO", "Parallel", "ParallelBase", "SW")) +
-  guides(colour=guide_legend("Design")) +
-  theme_bw() +
-  theme(plot.title=element_text(hjust=0.5, size=20),
-        plot.subtitle=element_text(hjust=0.5, size=18),
-        axis.title=element_text(size=16), axis.text=element_text(size=16),
-        legend.title=element_text(size=16), legend.text=element_text(size=14),
-        legend.position="bottom")
-ggsave(paste0("plots/conts_sim_T", Tp, "_m", m, ".pdf"), pctsim, width=297, height=210, units="mm")
+  # Convert for plotting
+  simvals_long <- simvals %>%
+                    gather(col, variance, -decay) %>%
+                    separate(col, c("design", "measure"), sep=-4) %>%
+                    spread(measure, variance)
 
-# Compare to results with uniform arrival time assumption
-load("plots/vars_T4_m50.Rda"); vars_T4_m50 <- varvals
-ctvarvals_long <- vars_T4_m50 %>%
-              select(decay, starts_with('ct')) %>%
-              gather(design, variances, ctSW:ctpllelbase, convert=TRUE) %>%
-              separate(design, c("model", "design"), sep=2) %>%
-              select(-model)
-varvals <- merge(simvals_long, ctvarvals_long)
+  # Obtain results under evenly-spaced assumption
+  load(paste0("plots/vars_T", Tp, "_m", m, ".Rda")); vars_assump <- varvals
+  ctvarvals_long <- vars_assump %>%
+                      select(decay, starts_with('ct')) %>%
+                      gather(design, variances, ctSW:ctpllelbase, convert=TRUE) %>%
+                      separate(design, c("model", "design"), sep=2) %>%
+                      select(-model)
+  varvals <- merge(simvals_long, ctvarvals_long)
+  
+  # Plot results and compare to results under evenly-spaced assumption
+  pctall <- ggplot(data=varvals, aes(x=decay, group=design, colour=design)) +
+    geom_line(aes(y=avg), size=1.0) +
+    geom_line(aes(y=variances), size=1.0, colour='black', linetype="longdash") +
+    geom_ribbon(aes(ymin=min, ymax=max, fill=design), alpha=0.3, show.legend=FALSE) +
+    expand_limits(y=0) +
+    xlab("Decay (1 - r)") +
+    ylab("Variance") +
+    labs(title="Variances of treatment effect, continuous time",
+         subtitle=bquote(paste(T==.(Tp), ", ", m==.(m), ", ", rho[0]==.(rho0)))) +
+    scale_color_hue(labels = c("CRXO", "Parallel", "Parallel w/ baseline", "SW")) +
+    guides(colour=guide_legend("Design")) +
+    theme_bw() +
+    theme(plot.title=element_text(hjust=0.5, size=20),
+          plot.subtitle=element_text(hjust=0.5, size=18),
+          axis.title=element_text(size=16), axis.text=element_text(size=16),
+          legend.title=element_text(size=16), legend.text=element_text(size=14),
+          legend.position="bottom")
+  ggsave(paste0("plots/conts_sim_", type, "_compare_T", Tp, "_m", m, ".pdf"), pctall, width=297, height=210, units="mm")
+}
 
-pctall <- ggplot(data=varvals, aes(x=decay, group=design, colour=design)) +
-  geom_line(aes(y=avg), size=1.0) +
-  geom_line(aes(y=variances), size=1.0, colour='black', linetype="longdash") +
-  geom_ribbon(aes(ymin=min, ymax=max, fill=design), alpha=0.3, show.legend=FALSE) +
-  expand_limits(y=0) +
-  xlab("Decay (1-r)") +
-  ylab("Variance") +
-  labs(title="Variances of treatment effect, continuous time",
-       subtitle=bquote(paste(T==.(Tp), ", ", m==.(m), ", ", rho[0]==.(rho0)))) +
-  scale_color_hue(labels = c("CRXO", "Parallel", "ParallelBase", "SW")) +
-  guides(colour=guide_legend("Design")) +
-  theme_bw() +
-  theme(plot.title=element_text(hjust=0.5, size=20),
-        plot.subtitle=element_text(hjust=0.5, size=18),
-        axis.title=element_text(size=16), axis.text=element_text(size=16),
-        legend.title=element_text(size=16), legend.text=element_text(size=14),
-        legend.position="bottom")
-ggsave(paste0("plots/conts_sim_compare_T", Tp, "_m", m, ".pdf"), pctall, width=297, height=210, units="mm")
+sim_results_plots(nsims=100, rs=seq(0.5, 1, 0.01), Tp=4, m=50, rho0=0.035, type="uniform")
+sim_results_plots(nsims=100, rs=seq(0.5, 1, 0.01), Tp=4, m=50, rho0=0.035, type="exponential")
+sim_results_plots(nsims=100, rs=seq(0.5, 1, 0.01), Tp=4, m=500, rho0=0.035, type="uniform")
+sim_results_plots(nsims=100, rs=seq(0.5, 1, 0.01), Tp=4, m=500, rho0=0.035, type="exponential")
