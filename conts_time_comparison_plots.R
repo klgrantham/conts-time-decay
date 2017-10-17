@@ -142,13 +142,14 @@ comparison_plots <- function(Tp, m, rho0){
   p4 <- pgen(ctdtvarvals, "pllelbase", "Parallel w/ baseline design")
   pctdtvarmult <- grid.arrange(p1, p2, p3, p4, ncol=2)
   
+  rho0char <- strsplit(as.character(rho0),"\\.")[[1]][2] # get numbers after decimal point
   # Save plots to pdf
-  ggsave(paste0("plots/conts_T", Tp, "_m", m, ".pdf"), pctvar) # TODO: Include rho0 values in filenames
-  ggsave(paste0("plots/conts_vs_disc_T", Tp, "_m", m, ".pdf"), pctvdtvar)
-  ggsave(paste0("plots/conts_vs_HH_T", Tp, "_m", m, ".pdf"), pctvHHvar)
-  ggsave(paste0("plots/conts_disc_multi_T", Tp, "_m", m, ".pdf"), pctdtvarmult)
+  ggsave(paste0("plots/conts_T", Tp, "_m", m, "_rho", rho0char, ".pdf"), pctvar) # TODO: Include rho0 values in filenames
+  ggsave(paste0("plots/conts_vs_disc_T", Tp, "_m", m, "_rho", rho0char, ".pdf"), pctvdtvar)
+  ggsave(paste0("plots/conts_vs_HH_T", Tp, "_m", m, "_rho", rho0char, ".pdf"), pctvHHvar)
+  ggsave(paste0("plots/conts_disc_multi_T", Tp, "_m", m, "_rho", rho0char, ".pdf"), pctdtvarmult)
   
-  save(varvals, file=paste0("plots/vars_T", Tp, "_m", m, ".Rda"))
+  save(varvals, file=paste0("plots/vars_T", Tp, "_m", m, "_rho", rho0char, ".Rda"))
   
   return(varvals)
 }
