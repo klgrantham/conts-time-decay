@@ -52,6 +52,28 @@ vartheta_ind <- function(Vi, Xmat, Toeplitz=TRUE){
   return(var)
 }
 
+vartheta_ind_inv <- function(Vi_inv, Xmat, Toeplitz=TRUE){
+  # Calculates the variance of the treatment effect, theta, for a model at the
+  # individual level with a particular treatment schedule
+  #
+  # Inputs:
+  # Vi_inv - a Tm x Tm inverse covariance matrix for one cluster
+  # Xmat - a K x T matrix of the treatment schedule (note: all elements either 0 or 1)
+  
+  K <- nrow(Xmat)
+  Tp <- ncol(Xmat)
+  m <- nrow(Vi_inv)/Tp
+  Q <- Xmat %x% t(rep(1,m))
+  B <- colSums(Xmat) %x% rep(1,m)
+  C <- diag(Tp) %x% rep(1,m)
+  term1 <- sum(diag(Q %*% Vi_inv %*% t(Q))) # Previously: t(D) %*% (diag(1,K) %x% Vi_inv) %*% D, where D <- Xvec %x% rep(1,m)
+  term2 <- t(B) %*% Vi_inv %*% C
+  term3 <- solve(t(C) %*% Vi_inv %*% C)
+  term4 <- t(C) %*% Vi_inv %*% B
+  var <- 1/(term1 - (1/K)*term2 %*% term3 %*% term4)
+  return(var)
+}
+
 splitcomp <- function(rowind, mat1, mat2){
   mult <- t(mat1[rowind,]) %*% mat2 %*% mat1[rowind,]
   return(mult)
@@ -217,5 +239,18 @@ pllelbasedesmat <- function(Tp){
   }
   Xpllelbase <- matrix(data=0, ncol=Tp, nrow=nclust)
   Xpllelbase[1:nclust/2, 2:Tp] <- 1
+  return(Xpllelbase)
+}
+
+prepostdesmat <- function(Tp){
+  if(Tp%%2==0) {
+    nclust <- Tp
+    Xpllelbase <- matrix(data=0, ncol=Tp, nrow=nclust)
+    Xpllelbase[1:nclust/2, (Tp/2+1):Tp] <- 1
+  } else {
+    nclust <- Tp-1
+    Xpllelbase <- matrix(data=0, ncol=Tp, nrow=nclust)
+    Xpllelbase[1:nclust/2, ceiling(Tp/2):Tp] <- 1
+  }
   return(Xpllelbase)
 }
