@@ -39,7 +39,7 @@ make_2x2_multiplot <- function(p1, p2, p3, p4, legend, title){
 }
 
 # General plotting function using long format data frame
-compare_designs <- function(df.long, ylabel, ylimits, Tp, m, rho0){
+compare_designs <- function(df.long, ylabel, ylimits, Tp, m){
   names(df.long)[dim(df.long)[2]] <- "value" # Assumes last column to be plotted
   p <- ggplot(data=df.long, aes(x=decay, y=value, colour=Design, linetype=Design)) +
     geom_line(size=1.2) +
@@ -115,18 +115,16 @@ long_rel_dt <- function(df){
 }
 
 
-rho0 <- 0.035
-
 # Plot variances, continuous time, all designs
 ylims <- c(0.0,0.06)
 p1 <- compare_designs(df.long=long_ct(vars_T4_m50),
-                      ylabel="Variance", ylimits=ylims, Tp=4, m=50, rho0=rho0)
+                      ylabel="Variance", ylimits=ylims, Tp=4, m=50)
 p2 <- compare_designs(df.long=long_ct(vars_T4_m500),
-                      ylabel="Variance", ylimits=ylims, Tp=4, m=500, rho0=rho0)
+                      ylabel="Variance", ylimits=ylims, Tp=4, m=500)
 p3 <- compare_designs(df.long=long_ct(vars_T8_m50),
-                      ylabel="Variance", ylimits=ylims, Tp=8, m=50, rho0=rho0)
+                      ylabel="Variance", ylimits=ylims, Tp=8, m=50)
 p4 <- compare_designs(df.long=long_ct(vars_T8_m500),
-                      ylabel="Variance", ylimits=ylims, Tp=8, m=500, rho0=rho0)
+                      ylabel="Variance", ylimits=ylims, Tp=8, m=500)
 mylegend <- g_legend(p1)
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend,
                             title="Variance of treatment effect, continuous time")
@@ -135,13 +133,13 @@ ggsave(paste0("plots/conts_50_500.pdf"), p1to4, width=297, height=210, units="mm
 # Plot relative variance, continuous vs discrete time, all designs
 ylims <- c(0.3,1.0)
 p1 <- compare_designs(df.long=long_rel_dt(vars_T4_m50),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=50, rho0=rho0)
+                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=50)
 p2 <- compare_designs(df.long=long_rel_dt(vars_T4_m500),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=500, rho0=rho0)
+                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=500)
 p3 <- compare_designs(df.long=long_rel_dt(vars_T8_m50),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=50, rho0=rho0)
+                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=50)
 p4 <- compare_designs(df.long=long_rel_dt(vars_T8_m500),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=500, rho0=rho0)
+                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=500)
 mylegend <- g_legend(p1)
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend,
                             title="Relative variance, continuous vs discrete time")
@@ -150,13 +148,13 @@ ggsave(paste0("plots/conts_vs_disc_50_500.pdf"), p1to4, width=297, height=210, u
 # Plot relative variance, continuous vs HH, all designs
 ylims <- c(0.0,6.0)
 p1 <- compare_designs(df.long=long_rel_HH(vars_T4_m50),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=50, rho0=rho0)
+                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=50)
 p2 <- compare_designs(df.long=long_rel_HH(vars_T4_m500),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=500, rho0=rho0)
+                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=500)
 p3 <- compare_designs(df.long=long_rel_HH(vars_T8_m50),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=50, rho0=rho0)
+                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=50)
 p4 <- compare_designs(df.long=long_rel_HH(vars_T8_m500),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=500, rho0=rho0)
+                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=500)
 mylegend <- g_legend(p1)
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend,
                             title="Relative variance, continuous time vs uniform")
@@ -165,13 +163,13 @@ ggsave(paste0("plots/conts_vs_HH_50_500.pdf"), p1to4, width=297, height=210, uni
 # Plot variances, discrete time, all designs
 ylims <- c(0.0,0.06)
 p1 <- compare_designs(df.long=long_dt(vars_T4_m50),
-                      ylabel="Variance", ylimits=ylims, Tp=4, m=50, rho0=rho0)
+                      ylabel="Variance", ylimits=ylims, Tp=4, m=50)
 p2 <- compare_designs(df.long=long_dt(vars_T4_m500),
-                      ylabel="Variance", ylimits=ylims, Tp=4, m=500, rho0=rho0)
+                      ylabel="Variance", ylimits=ylims, Tp=4, m=500)
 p3 <- compare_designs(df.long=long_dt(vars_T8_m50),
-                      ylabel="Variance", ylimits=ylims, Tp=8, m=50, rho0=rho0)
+                      ylabel="Variance", ylimits=ylims, Tp=8, m=50)
 p4 <- compare_designs(df.long=long_dt(vars_T8_m500),
-                      ylabel="Variance", ylimits=ylims, Tp=8, m=500, rho0=rho0)
+                      ylabel="Variance", ylimits=ylims, Tp=8, m=500)
 mylegend <- g_legend(p1)
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend,
                             title="Variance of treatment effect, discrete time")
@@ -180,13 +178,13 @@ ggsave(paste0("plots/disc_50_500.pdf"), p1to4, width=297, height=210, units="mm"
 # Plot variances, uniform, all designs
 ylims <- c(0.0,0.06)
 p1 <- compare_designs(df.long=long_HH(vars_T4_m50),
-                      ylabel="Variance", ylimits=ylims, Tp=4, m=50, rho0=rho0)
+                      ylabel="Variance", ylimits=ylims, Tp=4, m=50)
 p2 <- compare_designs(df.long=long_HH(vars_T4_m500),
-                      ylabel="Variance", ylimits=ylims, Tp=4, m=500, rho0=rho0)
+                      ylabel="Variance", ylimits=ylims, Tp=4, m=500)
 p3 <- compare_designs(df.long=long_HH(vars_T8_m50),
-                      ylabel="Variance", ylimits=ylims, Tp=8, m=50, rho0=rho0)
+                      ylabel="Variance", ylimits=ylims, Tp=8, m=50)
 p4 <- compare_designs(df.long=long_HH(vars_T8_m500),
-                      ylabel="Variance", ylimits=ylims, Tp=8, m=500, rho0=rho0)
+                      ylabel="Variance", ylimits=ylims, Tp=8, m=500)
 mylegend <- g_legend(p1)
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend,
                             title="Variance of treatment effect, uniform correlation")
