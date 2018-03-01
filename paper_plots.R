@@ -45,7 +45,7 @@ compare_designs <- function(df.long, ylabel, ylimits, Tp, m){
     geom_line(size=1.2) +
     scale_color_manual(values = c("#F8766D", "#00BA38", "#619CFF"),
                        labels = c("CRXO", "Parallel", "SW")) +
-    scale_linetype_manual(values = c("solid", "dotdash", "dashed"),
+    scale_linetype_manual(values = c("twodash", "dashed", "solid"),
                           labels = c("CRXO", "Parallel", "SW")) +
     expand_limits(y=ylimits) +
     xlab("Decay (1 - r)") +
