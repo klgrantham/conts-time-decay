@@ -12,19 +12,12 @@ library(grid)
 source('vartheta_twolevels.R')
 
 # Load results for different trial configurations
-load("plots/vars_T4_m50.Rda"); vars_T4_m50 <- varvals
-load("plots/vars_T8_m50.Rda"); vars_T8_m50 <- varvals
-load("plots/vars_T4_m100.Rda"); vars_T4_m100 <- varvals
-load("plots/vars_T8_m100.Rda"); vars_T8_m100 <- varvals
-load("plots/vars_T4_m200.Rda"); vars_T4_m200 <- varvals
-load("plots/vars_T8_m200.Rda"); vars_T8_m200 <- varvals
-load("plots/vars_T4_m400.Rda"); vars_T4_m400 <- varvals
-load("plots/vars_T8_m400.Rda"); vars_T8_m400 <- varvals
-load("plots/vars_T4_m500.Rda"); vars_T4_m500 <- varvals
-load("plots/vars_T8_m500.Rda"); vars_T8_m500 <- varvals
+load("plots/vars_T4_m50_rho04.Rda"); vars_T4_m50 <- varvals
+load("plots/vars_T8_m50_rho04.Rda"); vars_T8_m50 <- varvals
+load("plots/vars_T4_m500_rho04.Rda"); vars_T4_m500 <- varvals
+load("plots/vars_T8_m500_rho04.Rda"); vars_T8_m500 <- varvals
 
 # Extract legend
-# Source: github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
 g_legend <- function(a.gplot){
   tmp <- ggplot_gtable(ggplot_build(a.gplot))
   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
@@ -41,25 +34,28 @@ make_2x2_multiplot <- function(p1, p2, p3, p4, legend, title){
                                 ncol=2),
                     legend, nrow=2, heights=c(10,1),
                     top=textGrob(title,
-                                 gp=gpar(fontsize=20)))
+                                 gp=gpar(fontsize=18)))
   return(p)
 }
 
 # General plotting function using long format data frame
 compare_designs <- function(df.long, ylabel, ylimits, Tp, m, rho0){
   names(df.long)[dim(df.long)[2]] <- "value" # Assumes last column to be plotted
-  p <- ggplot(data=df.long, aes(x=decay, y=value, group=design, colour=design)) +
-    geom_line(size=1.0) +
+  p <- ggplot(data=df.long, aes(x=decay, y=value, colour=Design, linetype=Design)) +
+    geom_line(size=1.2) +
+    scale_color_manual(values = c("#F8766D", "#00BA38", "#619CFF"),
+                       labels = c("CRXO", "Parallel", "SW")) +
+    scale_linetype_manual(values = c("solid", "dotdash", "dashed"),
+                          labels = c("CRXO", "Parallel", "SW")) +
     expand_limits(y=ylimits) +
     xlab("Decay (1 - r)") +
     ylab(ylabel) +
-    labs(title=bquote(paste(T==.(Tp), ", ", m==.(m)))) + #, ", ", rho[0]==.(rho0)
-    scale_color_hue(labels = c("CRXO", "Parallel", "Parallel w/ baseline", "SW")) +
-    guides(colour=guide_legend("Design")) +
+    labs(title=bquote(paste(.(Tp), " periods, ", .(m), " subjects/cluster-period"))) +
     theme_bw() +
-    theme(plot.title=element_text(hjust=0.5, size=16),
-          axis.title=element_text(size=14), axis.text=element_text(size=14),
-          legend.title=element_text(size=16), legend.text=element_text(size=14),
+    theme(plot.title=element_text(hjust=0.5, size=12),
+          axis.title=element_text(size=10), axis.text=element_text(size=10),
+          legend.key.width = unit(1.5, "cm"),
+          legend.title=element_text(size=12), legend.text=element_text(size=12),
           legend.position="bottom")
   return(p)
 }
@@ -69,19 +65,9 @@ long_ct <- function(df){
   ctvarvals <- df %>%
     select(decay, starts_with('ct')) %>%
     filter(decay<=0.5)
-  ctvarvals_long <- gather(data=ctvarvals, key=design, value=variances,
-                           ctSW:ctpllelbase, convert=TRUE)
+  ctvarvals_long <- gather(data=ctvarvals, key=Design, value=Variance,
+                           ctSW:ctpllel, convert=TRUE)
   return(ctvarvals_long)
-}
-
-# Convert discrete time results to long format
-long_dt <- function(df){
-  dtvarvals <- df %>%
-    select(decay, starts_with('dt')) %>%
-    filter(decay<=0.5)
-  dtvarvals_long <- gather(data=dtvarvals, key=design, value=variances,
-                           dtSW:dtpllelbase, convert=TRUE)
-  return(dtvarvals_long)
 }
 
 # Convert uniform results to long format
@@ -89,33 +75,43 @@ long_HH <- function(df){
   HHvarvals <- df %>%
     select(decay, starts_with('HH')) %>%
     filter(decay<=0.5)
-  HHvarvals_long <- gather(data=HHvarvals, key=design, value=variances,
-                           HHSW:HHpllelbase, convert=TRUE)
+  HHvarvals_long <- gather(data=HHvarvals, key=Design, value=Variance,
+                           HHSW:HHpllel, convert=TRUE)
   return(HHvarvals_long)
 }
 
-# Convert continuous vs discrete time results to long format
-long_rel_dt <- function(df){
-  ctvdtvarvals <- df %>%
-    mutate(ratioSW=ctSW/dtSW, ratiocrxo=ctcrxo/dtcrxo,
-           ratiopllel=ctpllel/dtpllel, ratiopllelbase=ctpllelbase/dtpllelbase) %>%
-    select(decay, starts_with('ratio')) %>%
+# Convert discrete time results to long format
+long_dt <- function(df){
+  dtvarvals <- df %>%
+    select(decay, starts_with('dt')) %>%
     filter(decay<=0.5)
-  ctvdtvarvals_long <- gather(data=ctvdtvarvals, key=design, value=relative_variance,
-                              ratioSW:ratiopllelbase, convert=TRUE)
-  return(ctvdtvarvals_long)
+  dtvarvals_long <- gather(data=dtvarvals, key=Design, value=Variance,
+                           dtSW:dtpllel, convert=TRUE)
+  return(dtvarvals_long)
 }
 
 # Convert continuous time vs HH results to long format
 long_rel_HH <- function(df){
   ctvHHvarvals <- df %>%
     mutate(ratioSW=ctSW/HHSW, ratiocrxo=ctcrxo/HHcrxo,
-           ratiopllel=ctpllel/HHpllel, ratiopllelbase=ctpllelbase/HHpllelbase) %>%
+           ratiopllel=ctpllel/HHpllel) %>%
     select(decay, starts_with('ratio')) %>%
     filter(decay<=0.5)
-  ctvHHvarvals_long <- gather(data=ctvHHvarvals, key=design, value=relative_variance,
-                              ratioSW:ratiopllelbase, convert=TRUE)
+  ctvHHvarvals_long <- gather(data=ctvHHvarvals, key=Design, value=relative_variance,
+                              ratioSW:ratiopllel, convert=TRUE)
   return(ctvHHvarvals_long)
+}
+
+# Convert continuous time vs discrete time results to long format
+long_rel_dt <- function(df){
+  ctvdtvarvals <- df %>%
+    mutate(ratioSW=ctSW/dtSW, ratiocrxo=ctcrxo/dtcrxo,
+           ratiopllel=ctpllel/dtpllel) %>%
+    select(decay, starts_with('ratio')) %>%
+    filter(decay<=0.5)
+  ctvdtvarvals_long <- gather(data=ctvdtvarvals, key=Design, value=relative_variance,
+                              ratioSW:ratiopllel, convert=TRUE)
+  return(ctvdtvarvals_long)
 }
 
 
