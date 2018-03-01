@@ -17,6 +17,12 @@ load("plots/vars_T8_m50_rho04.Rda"); vars_T8_m50 <- varvals
 load("plots/vars_T4_m500_rho04.Rda"); vars_T4_m500 <- varvals
 load("plots/vars_T8_m500_rho04.Rda"); vars_T8_m500 <- varvals
 
+load("plots/vars_ct_mean_T4_m50_rho04.Rda"); vars_ct_mean_T4_m50 <- varvals
+load("plots/vars_ct_mean_T8_m50_rho04.Rda"); vars_ct_mean_T8_m50 <- varvals
+load("plots/vars_ct_mean_T4_m500_rho04.Rda"); vars_ct_mean_T4_m500 <- varvals
+load("plots/vars_ct_mean_T8_m500_rho04.Rda"); vars_ct_mean_T8_m500 <- varvals
+
+
 # Extract legend
 g_legend <- function(a.gplot){
   tmp <- ggplot_gtable(ggplot_build(a.gplot))
@@ -63,30 +69,30 @@ compare_designs <- function(df.long, ylabel, ylimits, Tp, m){
 # Convert continuous time results to long format
 long_ct <- function(df){
   ctvarvals <- df %>%
-    select(decay, starts_with('ct')) %>%
+    select(decay, starts_with('ct'), -ends_with('base')) %>%
     filter(decay<=0.5)
   ctvarvals_long <- gather(data=ctvarvals, key=Design, value=Variance,
-                           ctSW:ctpllel, convert=TRUE)
+                           -decay, convert=TRUE)
   return(ctvarvals_long)
 }
 
 # Convert uniform results to long format
 long_HH <- function(df){
   HHvarvals <- df %>%
-    select(decay, starts_with('HH')) %>%
+    select(decay, starts_with('HH'), -ends_with('base')) %>%
     filter(decay<=0.5)
   HHvarvals_long <- gather(data=HHvarvals, key=Design, value=Variance,
-                           HHSW:HHpllel, convert=TRUE)
+                           -decay, convert=TRUE)
   return(HHvarvals_long)
 }
 
 # Convert discrete time results to long format
 long_dt <- function(df){
   dtvarvals <- df %>%
-    select(decay, starts_with('dt')) %>%
+    select(decay, starts_with('dt'), -ends_with('base')) %>%
     filter(decay<=0.5)
   dtvarvals_long <- gather(data=dtvarvals, key=Design, value=Variance,
-                           dtSW:dtpllel, convert=TRUE)
+                           -decay, convert=TRUE)
   return(dtvarvals_long)
 }
 
@@ -127,7 +133,7 @@ p4 <- compare_designs(df.long=long_ct(vars_T8_m500),
                       ylabel="Variance", ylimits=ylims, Tp=8, m=500)
 mylegend <- g_legend(p1)
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend,
-                            title="Variance of treatment effect, continuous-time decay")
+                            title="Variance of treatment effect estimator, continuous-time decay")
 ggsave(paste0("plots/conts_T4_8_m50_500_rho04.jpg"), p1to4, width=9, height=7, units="in", dpi=600)
 
 # Plot relative variance, HH vs continuous, all designs
@@ -150,7 +156,7 @@ p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend,
 ggsave(paste0("plots/HH_vs_conts_50_500_rho04.jpg"), p1to4, width=9, height=7, units="in", dpi=600)
 
 # Plot relative variance, discrete vs continuous, all designs
-ylims <- c(0.0,3.0)
+ylims <- c(0.5,3.0)
 p1 <- compare_designs(df.long=long_rel_dt_ct(vars_T4_m50),
                       ylabel="Variance ratio", ylimits=ylims, Tp=4, m=50) +
       geom_hline(aes(yintercept=1))
@@ -167,3 +173,44 @@ mylegend <- g_legend(p1)
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend,
                             title="Relative variance, discrete- vs continuous-time decay")
 ggsave(paste0("plots/dt_vs_conts_50_500_rho04.jpg"), p1to4, width=9, height=7, units="in", dpi=600)
+
+
+# Plot relative variance, continuous, mean vs individual level, all designs
+vars_ind_mean_T4_m50 <- data.frame(long_ct(vars_T4_m50),
+                            Variance_mean = long_ct(vars_ct_mean_T4_m50)$Variance)
+vars_ind_mean_T4_m500 <- data.frame(long_ct(vars_T4_m500),
+                             Variance_mean = long_ct(vars_ct_mean_T4_m500)$Variance)
+vars_ind_mean_T8_m50 <- data.frame(long_ct(vars_T8_m50),
+                             Variance_mean = long_ct(vars_ct_mean_T8_m50)$Variance)
+vars_ind_mean_T8_m500 <- data.frame(long_ct(vars_T8_m500),
+                             Variance_mean = long_ct(vars_ct_mean_T8_m500)$Variance)
+
+vars_indvsmean_ratios_T4_m50 <- vars_ind_mean_T4_m50 %>%
+  mutate(var_ratio = Variance/Variance_mean) %>%
+  select(decay, Design, var_ratio)
+vars_indvsmean_ratios_T4_m500 <- vars_ind_mean_T4_m500 %>%
+  mutate(var_ratio = Variance/Variance_mean) %>%
+  select(decay, Design, var_ratio)
+vars_indvsmean_ratios_T8_m50 <- vars_ind_mean_T8_m50 %>%
+  mutate(var_ratio = Variance/Variance_mean) %>%
+  select(decay, Design, var_ratio)
+vars_indvsmean_ratios_T8_m500 <- vars_ind_mean_T8_m500 %>%
+  mutate(var_ratio = Variance/Variance_mean) %>%
+  select(decay, Design, var_ratio)
+
+p1 <- compare_designs(vars_indvsmean_ratios_T4_m50, ylabel="Relative variance",
+                     ylimits=c(0.5,1.0), Tp=4, m=50) +
+      geom_hline(aes(yintercept=1))
+p2 <- compare_designs(vars_indvsmean_ratios_T4_m500, ylabel="Relative variance",
+                      ylimits=c(0.5,1.0), Tp=4, m=500) +
+      geom_hline(aes(yintercept=1))
+p3 <- compare_designs(vars_indvsmean_ratios_T8_m50, ylabel="Relative variance",
+                      ylimits=c(0.5,1.0), Tp=8, m=50) +
+      geom_hline(aes(yintercept=1))
+p4 <- compare_designs(vars_indvsmean_ratios_T8_m500, ylabel="Relative variance",
+                      ylimits=c(0.5,1.0), Tp=8, m=500) +
+      geom_hline(aes(yintercept=1))
+mylegend <- g_legend(p1)
+p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend,
+                            title="Relative variance, continuous-time decay, mean vs individual level")
+ggsave(paste0("plots/conts_meanvsind_ratio_50_500_rho04.jpg"), p1to4, width=9, height=7, units="in", dpi=600)
