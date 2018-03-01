@@ -90,11 +90,11 @@ long_dt <- function(df){
   return(dtvarvals_long)
 }
 
-# Convert continuous time vs HH results to long format
-long_rel_HH <- function(df){
+# Convert HH vs continuous time results to long format
+long_rel_HH_ct <- function(df){
   ctvHHvarvals <- df %>%
-    mutate(ratioSW=ctSW/HHSW, ratiocrxo=ctcrxo/HHcrxo,
-           ratiopllel=ctpllel/HHpllel) %>%
+    mutate(ratioSW=HHSW/ctSW, ratiocrxo=HHcrxo/ctcrxo,
+           ratiopllel=HHpllel/ctpllel) %>%
     select(decay, starts_with('ratio')) %>%
     filter(decay<=0.5)
   ctvHHvarvals_long <- gather(data=ctvHHvarvals, key=Design, value=relative_variance,
@@ -102,11 +102,11 @@ long_rel_HH <- function(df){
   return(ctvHHvarvals_long)
 }
 
-# Convert continuous time vs discrete time results to long format
-long_rel_dt <- function(df){
+# Convert discrete time vs continuous time results to long format
+long_rel_dt_ct <- function(df){
   ctvdtvarvals <- df %>%
-    mutate(ratioSW=ctSW/dtSW, ratiocrxo=ctcrxo/dtcrxo,
-           ratiopllel=ctpllel/dtpllel) %>%
+    mutate(ratioSW=dtSW/ctSW, ratiocrxo=dtcrxo/ctcrxo,
+           ratiopllel=dtpllel/ctpllel) %>%
     select(decay, starts_with('ratio')) %>%
     filter(decay<=0.5)
   ctvdtvarvals_long <- gather(data=ctvdtvarvals, key=Design, value=relative_variance,
@@ -130,35 +130,43 @@ p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend,
                             title="Variance of treatment effect, continuous time")
 ggsave(paste0("plots/conts_50_500.pdf"), p1to4, width=297, height=210, units="mm")
 
-# Plot relative variance, continuous vs discrete time, all designs
-ylims <- c(0.3,1.0)
-p1 <- compare_designs(df.long=long_rel_dt(vars_T4_m50),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=50)
-p2 <- compare_designs(df.long=long_rel_dt(vars_T4_m500),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=500)
-p3 <- compare_designs(df.long=long_rel_dt(vars_T8_m50),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=50)
-p4 <- compare_designs(df.long=long_rel_dt(vars_T8_m500),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=500)
+# Plot relative variance, HH vs continuous, all designs
+ylims <- c(0.0,4.0)
+p1 <- compare_designs(df.long=long_rel_HH_ct(vars_T4_m50),
+                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=50) +
+      geom_hline(aes(yintercept=1))
+p2 <- compare_designs(df.long=long_rel_HH_ct(vars_T4_m500),
+                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=500) +
+      geom_hline(aes(yintercept=1))
+p3 <- compare_designs(df.long=long_rel_HH_ct(vars_T8_m50),
+                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=50) +
+      geom_hline(aes(yintercept=1))
+p4 <- compare_designs(df.long=long_rel_HH_ct(vars_T8_m500),
+                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=500) +
+      geom_hline(aes(yintercept=1))
+mylegend <- g_legend(p1)
+p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend,
+                            title="Relative variance, uniform vs continuous-time decay")
+ggsave(paste0("plots/HH_vs_conts_50_500.pdf"), p1to4, width=297, height=210, units="mm")
+
+# Plot relative variance, discrete vs continuous, all designs
+ylims <- c(0.0,3.0)
+p1 <- compare_designs(df.long=long_rel_dt_ct(vars_T4_m50),
+                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=50) +
+      geom_hline(aes(yintercept=1))
+p2 <- compare_designs(df.long=long_rel_dt_ct(vars_T4_m500),
+                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=500) +
+      geom_hline(aes(yintercept=1))
+p3 <- compare_designs(df.long=long_rel_dt_ct(vars_T8_m50),
+                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=50) +
+      geom_hline(aes(yintercept=1))
+p4 <- compare_designs(df.long=long_rel_dt_ct(vars_T8_m500),
+                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=500) +
+      geom_hline(aes(yintercept=1))
 mylegend <- g_legend(p1)
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend,
                             title="Relative variance, continuous vs discrete time")
-ggsave(paste0("plots/conts_vs_disc_50_500.pdf"), p1to4, width=297, height=210, units="mm")
-
-# Plot relative variance, continuous vs HH, all designs
-ylims <- c(0.0,6.0)
-p1 <- compare_designs(df.long=long_rel_HH(vars_T4_m50),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=50)
-p2 <- compare_designs(df.long=long_rel_HH(vars_T4_m500),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=500)
-p3 <- compare_designs(df.long=long_rel_HH(vars_T8_m50),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=50)
-p4 <- compare_designs(df.long=long_rel_HH(vars_T8_m500),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=500)
-mylegend <- g_legend(p1)
-p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend,
-                            title="Relative variance, continuous time vs uniform")
-ggsave(paste0("plots/conts_vs_HH_50_500.pdf"), p1to4, width=297, height=210, units="mm")
+ggsave(paste0("plots/disc_vs_conts_50_500.pdf"), p1to4, width=297, height=210, units="mm")
 
 # Plot variances, discrete time, all designs
 ylims <- c(0.0,0.06)
