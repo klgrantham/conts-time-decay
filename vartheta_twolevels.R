@@ -7,6 +7,7 @@
 # Mean and individual level
 
 library(ltsa)
+library(plyr)
 
 vartheta_mean <- function(Vi, Xmat){
   # Calculates the variance of the treatment effect, theta, for a model at the
@@ -19,50 +20,39 @@ vartheta_mean <- function(Vi, Xmat){
   K <- nrow(Xmat)
   Tp <- ncol(Xmat)
   Xvec <- as.vector(t(Xmat))
-  var <- 1/(t(Xvec) %*% (diag(1,K) %x% solve(Vi)) %*% Xvec - 
-            colSums(Xmat) %*% solve(Vi) %*% (matrix(colSums(Xmat),nrow=Tp, ncol=1))/K)
+  Vi_inv <- solve(Vi)
+  var <- 1/(t(Xvec) %*% (diag(1,K) %x% Vi_inv) %*% Xvec - 
+            colSums(Xmat) %*% solve(Vi_inv) %*% (matrix(colSums(Xmat),nrow=Tp, ncol=1))/K)
   return(var)
 }
 
-vartheta_ind <- function(Vi, Xmat, Toeplitz=TRUE){
+vartheta_ind_vec <- function(Vi, Xmat, Toeplitz=TRUE){
   # Calculates the variance of the treatment effect, theta, for a model at the
   # individual level with a particular treatment schedule
   #
   # Inputs:
-  # Xmat - a K x T matrix of the treatment schedule (note: all elements either 0 or 1)
+  # Xmat - a vector of K x T matrices of the treatment schedule (note: all elements either 0 or 1)
   # Vi - a Tm x Tm variance matrix for one cluster
   
-  K <- nrow(Xmat)
-  Tp <- ncol(Xmat)
-  m <- nrow(Vi)/Tp
   # If continuous time matrix, use Toeplitz inversion algorithm
   if(Toeplitz){ # Could check for Vi[1,2]!=Vi[1,3] but w/ simulated times won't be Toeplitz
     Vi_inv <- TrenchInverse(Vi)
   } else{
     Vi_inv <- solve(Vi)
   }
-  Q <- Xmat %x% t(rep(1,m))
-  B <- colSums(Xmat) %x% rep(1,m)
-  C <- diag(Tp) %x% rep(1,m)
-  term1 <- sum(diag(Q %*% Vi_inv %*% t(Q))) # Previously: t(D) %*% (diag(1,K) %x% Vi_inv) %*% D, where D <- Xvec %x% rep(1,m)
-  term2 <- t(B) %*% Vi_inv %*% C
-  term3 <- solve(t(C) %*% Vi_inv %*% C)
-  term4 <- t(C) %*% Vi_inv %*% B
-  var <- 1/(term1 - (1/K)*term2 %*% term3 %*% term4)
-  return(var)
+  
+  vars <- laply(Xmat, vartheta, Vi_inv)
+  return(vars)
 }
 
-vartheta_ind_inv <- function(Vi_inv, Xmat, Toeplitz=TRUE){
-  # Calculates the variance of the treatment effect, theta, for a model at the
-  # individual level with a particular treatment schedule
-  #
-  # Inputs:
-  # Vi_inv - a Tm x Tm inverse covariance matrix for one cluster
-  # Xmat - a K x T matrix of the treatment schedule (note: all elements either 0 or 1)
+vartheta <- function(Xmat, Vi_inv) {
+  # Returns variance of treatment effect estimator for an inverse covariance
+  # matrix and a design matrix
   
   K <- nrow(Xmat)
   Tp <- ncol(Xmat)
   m <- nrow(Vi_inv)/Tp
+  
   Q <- Xmat %x% t(rep(1,m))
   B <- colSums(Xmat) %x% rep(1,m)
   C <- diag(Tp) %x% rep(1,m)
@@ -73,35 +63,6 @@ vartheta_ind_inv <- function(Vi_inv, Xmat, Toeplitz=TRUE){
   var <- 1/(term1 - (1/K)*term2 %*% term3 %*% term4)
   return(var)
 }
-
-splitcomp <- function(rowind, mat1, mat2){
-  mult <- t(mat1[rowind,]) %*% mat2 %*% mat1[rowind,]
-  return(mult)
-}
-
-vartheta_ind_alt <- function(Vi, Xmat){
-  # Calculates the variance of the treatment effect, theta, for a model at the
-  # individual level with a particular treatment schedule
-  #
-  # Inputs:
-  # Xmat - a K x T matrix of the treatment schedule (note: all elements either 0 or 1)
-  # Vi - a Tm x Tm variance matrix for one cluster
-  
-  K <- nrow(Xmat)
-  Tp <- ncol(Xmat)
-  m <- nrow(Vi)/Tp
-  Vi_inv <- TrenchInverse(Vi)
-  Q <- Xmat %x% t(rep(1,m))
-  B <- colSums(Xmat) %x% rep(1,m)
-  C <- diag(Tp) %x% rep(1,m)
-  term1 <- sum(laply(seq(1,nrow(Q)), splitcomp, Q, Vi_inv))
-  term2 <- t(B) %*% Vi_inv %*% C
-  term3 <- solve(t(C) %*% Vi_inv %*% C)
-  term4 <- t(C) %*% Vi_inv %*% B
-  var <- 1/(term1 - (1/K)*term2 %*% term3 %*% term4)
-  return(var)
-}
-
 
 # Variance matrices under different models
 # Hussey & Hughes, discrete time decay, continuous time decay
@@ -253,4 +214,50 @@ prepostdesmat <- function(Tp){
     Xpllelbase[1:nclust/2, ceiling(Tp/2):Tp] <- 1
   }
   return(Xpllelbase)
+}
+
+# Generate variance results
+generate_var_results  <- function(Tp, m, rho0) {
+  # Calculates the variance of the treatment effect estimator under the models:
+  #    continuous time (ct), discrete time (dt), Hussey & Hughes (HH)
+  # with trial designs:
+  #    stepped wedge (SW),
+  #    cluster randomised crossover (CRXO),
+  #    parallel (pllel)
+  #
+  # Inputs:
+  # Tp - number of time periods in the trial
+  # m - number of subjects measured in each time period
+  # rho0 - base correlation between a pair of subjects
+  #
+  # Example usage: vals <- generate_var_results(Tp=4, m=50, rho0=0.035)
+  
+  # Set vector of r values (Decay = 1-r)
+  rs <- seq(0.5, 1, 0.01)
+  # Specify the covariance matrices under the different models
+  ctvarmat <- llply(rs, expdecayVicont, Tp, m, rho0, meanlvl=FALSE)
+  dtvarmat <- llply(rs, expdecayVi, Tp, m, rho0, meanlvl=TRUE)
+  HHvarmat <- HHVi(Tp, m, rho0, meanlvl=TRUE)
+
+  # Get the variances of the treatment effect estimator under the
+  # different models and designs
+  scalefactor <- Tp/(Tp-1)
+  Xmats <- list(SWdesmat(Tp), crxodesmat(Tp), plleldesmat(Tp))
+  ctres <- laply(ctvarmat, vartheta_ind_vec, Xmat=Xmats)
+  varvals <- data.frame(decay=1-rs,
+                        ctSW = ctres[,1],
+                        ctcrxo = scalefactor*ctres[,2],
+                        ctpllel = scalefactor*ctres[,3],
+                        dtSW = laply(dtvarmat, vartheta_mean, Xmat=SWdesmat(Tp)),
+                        dtcrxo = scalefactor*laply(dtvarmat, vartheta_mean, Xmat=crxodesmat(Tp)),
+                        dtpllel = scalefactor*laply(dtvarmat, vartheta_mean, Xmat=plleldesmat(Tp)),
+                        HHSW = vartheta_mean(Vi=HHvarmat, Xmat=SWdesmat(Tp)),
+                        HHcrxo = scalefactor*vartheta_mean(Vi=HHvarmat, Xmat=crxodesmat(Tp)),
+                        HHpllel = scalefactor*vartheta_mean(Vi=HHvarmat, Xmat=plleldesmat(Tp)))
+
+  # Save results to R data file
+  rho0char <- strsplit(as.character(rho0),"\\.")[[1]][2] # get numbers after decimal point
+  save(varvals, file=paste0("plots/vars_T", Tp, "_m", m, "_rho", rho0char, ".Rda"))
+  
+  return(varvals)
 }
