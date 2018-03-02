@@ -22,7 +22,7 @@ vartheta_mean <- function(Vi, Xmat){
   Xvec <- as.vector(t(Xmat))
   Vi_inv <- solve(Vi)
   var <- 1/(t(Xvec) %*% (diag(1,K) %x% Vi_inv) %*% Xvec - 
-            colSums(Xmat) %*% solve(Vi_inv) %*% (matrix(colSums(Xmat),nrow=Tp, ncol=1))/K)
+            colSums(Xmat) %*% Vi_inv %*% (matrix(colSums(Xmat),nrow=Tp, ncol=1))/K)
   return(var)
 }
 
