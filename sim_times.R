@@ -65,11 +65,12 @@ variances_sim <- function(rs, Tp, m, rho0, type="uniform"){
   Vs <- Vicontsim(Tp, m, rho0, type)
   varmats <- llply(rs, Vs) # Creates a list of covariance matrices for the values in rs
   scalefactor <- Tp/(Tp-1)
+  Xmats <- list(SWdesmat(Tp), crxodesmat(Tp), plleldesmat(Tp))
+  ctres <- laply(varmats, vartheta_ind_vec, Xmat=Xmats, Toeplitz=FALSE)
   vals <- data.frame(decay = 1-rs,
-                     SW = laply(varmats, vartheta_ind, Xmat=SWdesmat(Tp), Toeplitz=FALSE),
-                     crxo = scalefactor*laply(varmats, vartheta_ind, Xmat=crxodesmat(Tp), Toeplitz=FALSE),
-                     pllel = scalefactor*laply(varmats, vartheta_ind, Xmat=plleldesmat(Tp), Toeplitz=FALSE),
-                     pllelbase = scalefactor*laply(varmats, vartheta_ind, Xmat=pllelbasedesmat(Tp), Toeplitz=FALSE))
+                     SW = ctres[,1],
+                     crxo = scalefactor*ctres[,2],
+                     pllel = scalefactor*ctres[,3])
   return(vals)
 }
 
@@ -80,82 +81,92 @@ sim_results <- function(nsims, rs, Tp, m, rho0, type="uniform"){
   #    - stepped wedge (SW)
   #    - cluster randomised crossover (CRXO)
   #    - parallel (pllel)
-  #    - parallel with baseline (pllelbase)
   # and returns the average, minimum and maximum observed variances
   # for each design
-
+  
   simvalslist <- replicate(nsims, variances_sim(rs, Tp, m, rho0, type), simplify=FALSE)
+  # Save sim results
+  rho0char <- strsplit(as.character(rho0),"\\.")[[1]][2]
+  save(simvalslist, file=paste0("plots/vars_nsims_", nsims, "_", type, "_T", Tp, "_m", m, "_rho", rho0char, ".Rda"))
   
   nrows <- length(rs)
   SWvals <- matrix(numeric(0), nrows, nsims)
   crxovals <- matrix(numeric(0), nrows, nsims)
   pllelvals <- matrix(numeric(0), nrows, nsims)
-  pllelbasevals <- matrix(numeric(0), nrows, nsims)
   for (i in 1:nsims){
     SWvals[,i] <- simvalslist[[i]]$SW
     crxovals[,i] <- simvalslist[[i]]$crxo
     pllelvals[,i] <- simvalslist[[i]]$pllel
-    pllelbasevals[,i] <- simvalslist[[i]]$pllelbase
   }
+  SWvals_sorted <- t(apply(SWvals, 1, sort))
+  crxovals_sorted <- t(apply(crxovals, 1, sort))
+  pllelvals_sorted <- t(apply(pllelvals, 1, sort))
+  ub <- 0.975; ub_index <- round(ub*nsims)
+  lb <- 0.025; lb_index <- round(lb*nsims)
   simvals <- data.frame(decay=1-rs,
-                        SWmin = apply(SWvals, 1, min),
-                        SWavg = apply(SWvals, 1, mean),
-                        SWmax = apply(SWvals, 1, max),
-                        crxomin = apply(crxovals, 1, min),
-                        crxoavg = apply(crxovals, 1, mean),
-                        crxomax = apply(crxovals, 1, max),
-                        pllelmin = apply(pllelvals, 1, min),
-                        pllelavg = apply(pllelvals, 1, mean),
-                        pllelmax = apply(pllelvals, 1, max),
-                        pllelbasemin = apply(pllelbasevals, 1, min),
-                        pllelbaseavg = apply(pllelbasevals, 1, mean),
-                        pllelbasemax = apply(pllelbasevals, 1, max))
+                        SW.lower = SWvals_sorted[,lb_index],
+                        SW.avg = apply(SWvals, 1, mean),
+                        SW.upper = SWvals_sorted[,ub_index],
+                        crxo.lower = crxovals_sorted[,lb_index],
+                        crxo.avg = apply(crxovals, 1, mean),
+                        crxo.upper = crxovals_sorted[,ub_index],
+                        pllel.lower = pllelvals_sorted[,lb_index],
+                        pllel.avg = apply(pllelvals, 1, mean),
+                        pllel.upper = pllelvals_sorted[,ub_index])
   return(simvals)
 }
 
+##
+Tp <- 4
+m <- 50
+rho0 <- 0.04
+rho0char <- strsplit(as.character(rho0),"\\.")[[1]][2]
 
-sim_results_plots <- function(nsims=100, rs=seq(0.5, 1, 0.01), Tp, m, rho0, type="uniform"){
+simvals <- sim_results(nsims=1000, rs=seq(0.5, 1, 0.01), Tp=Tp, m=m, rho0=rho0, type="uniform")
+save(simvals, file=paste0("plots/vars_nsims_1000_summary_uniform_T", Tp, "_m", m, "_rho", rho0char, ".Rda"))
 
-  simvals <- sim_results(nsims=nsims, rs=rs, Tp=Tp, m=m, rho0=rho0, type=type)
-  save(simvals, file=paste0("plots/vars_sim_", type, "_T", Tp, "_m", m, "_rho", rho0char, ".Rda"))
+# TODO: Run these results
+simvalsexp <- sim_results(nsims=1000, rs=seq(0.5, 1, 0.01), Tp=Tp, m=m, rho0=rho0, type="exponential")
+save(simvalsexp, file=paste0("plots/vars_nsims_1000_summary_exponential_T", Tp, "_m", m, "_rho", rho0char, ".Rda"))
 
+sim_results_plots <- function(simvals, Tp, m, rho0, type="uniform"){
+  
   # Convert for plotting
   simvals_long <- simvals %>%
-                    gather(col, variance, -decay) %>%
-                    separate(col, c("design", "measure"), sep=-4) %>%
-                    spread(measure, variance)
-
+    gather(Design, Variance, -decay) %>%
+    separate(Design, c("Design", "measure")) %>%
+    spread(measure, Variance)
+  
   # Obtain results under evenly-spaced assumption
-  load(paste0("plots/vars_T", Tp, "_m", m, ".Rda")); vars_assump <- varvals
+  rho0char <- strsplit(as.character(rho0),"\\.")[[1]][2]
+  load(paste0("plots/vars_T", Tp, "_m", m, "_rho", rho0char, ".Rda")); vars_assump <- varvals
   ctvarvals_long <- vars_assump %>%
-                      select(decay, starts_with('ct')) %>%
-                      gather(design, variances, ctSW:ctpllelbase, convert=TRUE) %>%
-                      separate(design, c("model", "design"), sep=2) %>%
-                      select(-model)
+    select(decay, starts_with('ct'), -ends_with('base')) %>%
+    gather(Design, Variance, -decay, convert=TRUE) %>%
+    separate(Design, c("model", "Design"), sep=2) %>%
+    select(-model)
   varvals <- merge(simvals_long, ctvarvals_long)
   
+  # TODO: Add comparison to ctvarvals_long back in
   # Plot results and compare to results under evenly-spaced assumption
-  pctall <- ggplot(data=varvals, aes(x=decay, group=design, colour=design)) +
-    geom_line(aes(y=avg), size=1.0) +
-    geom_line(aes(y=variances), size=1.0, colour='black', linetype="longdash") +
-    geom_ribbon(aes(ymin=min, ymax=max, fill=design), alpha=0.3, show.legend=FALSE) +
+  p <- ggplot(data=simvals_long, aes(x=decay, colour=Design, linetype=Design)) +
+    geom_line(aes(y=avg), size=1.2) +
+    geom_ribbon(aes(ymin=lower, ymax=upper, fill=Design), alpha=0.3, show.legend=FALSE) +
     expand_limits(y=0) +
+    scale_color_manual(values = c("#F8766D", "#00BA38", "#619CFF"),
+                       labels = c("CRXO", "Parallel", "SW")) +
+    scale_linetype_manual(values = c("twodash", "dashed", "solid"),
+                          labels = c("CRXO", "Parallel", "SW")) +
     xlab("Decay (1 - r)") +
     ylab("Variance") +
-    labs(title="Variances of treatment effect, continuous time",
-         subtitle=bquote(paste(T==.(Tp), ", ", m==.(m), ", ", rho[0]==.(rho0)))) +
-    scale_color_hue(labels = c("CRXO", "Parallel", "Parallel w/ baseline", "SW")) +
-    guides(colour=guide_legend("Design")) +
+    labs(title="Variance of treatment effect estimator, continuous-time correlation decay",
+         subtitle=paste0("Simulated measurement times,", type, " distribution")) +
     theme_bw() +
     theme(plot.title=element_text(hjust=0.5, size=20),
           plot.subtitle=element_text(hjust=0.5, size=18),
           axis.title=element_text(size=16), axis.text=element_text(size=16),
+          legend.key.width = unit(1.5, "cm"),
           legend.title=element_text(size=16), legend.text=element_text(size=14),
           legend.position="bottom")
-  ggsave(paste0("plots/conts_sim_", type, "_compare_T", Tp, "_m", m, ".pdf"), pctall, width=297, height=210, units="mm")
+  ggsave(paste0("plots/conts_sim_", type, "_compare_T", Tp, "_m", m, ".pdf"), p, width=297, height=210, units="mm")
 }
-
-sim_results_plots(nsims=100, rs=seq(0.5, 1, 0.01), Tp=4, m=50, rho0=0.035, type="uniform")
-sim_results_plots(nsims=100, rs=seq(0.5, 1, 0.01), Tp=4, m=50, rho0=0.035, type="exponential")
-sim_results_plots(nsims=100, rs=seq(0.5, 1, 0.01), Tp=4, m=500, rho0=0.035, type="uniform")
-sim_results_plots(nsims=100, rs=seq(0.5, 1, 0.01), Tp=4, m=500, rho0=0.035, type="exponential")
