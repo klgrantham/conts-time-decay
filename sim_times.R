@@ -31,7 +31,6 @@ Vicontsim <- function(Tp, m, rho0, type="uniform"){
   # Generate arrival times
   if (type=="uniform"){
     x <- runif(Tp*m, 0, 1) # Generate vector of fractional times
-    # Note: Does not sample from extreme values (should allow this)
     j <- rep(1:Tp, each=m) # Create vector of time period indices and add to fractional times
     times <- sort(j + x) # Combine to create arrival times
   } else if (type=="exponential"){
@@ -60,7 +59,6 @@ variances_sim <- function(rs, Tp, m, rho0, type="uniform"){
   #    - stepped wedge (SW)
   #    - cluster randomised crossover (CRXO)
   #    - parallel (pllel)
-  #    - parallel with baseline (pllelbase)
   
   Vs <- Vicontsim(Tp, m, rho0, type)
   varmats <- llply(rs, Vs) # Creates a list of covariance matrices for the values in rs
@@ -75,14 +73,14 @@ variances_sim <- function(rs, Tp, m, rho0, type="uniform"){
 }
 
 sim_results <- function(nsims, rs, Tp, m, rho0, type="uniform"){
-  # Calculates the variance of the treatment effect under the model:
+  # Calculates the variance of the treatment effect estimator under the model:
   #    - continuous time (ct)
   # using simulated arrival times, with trial designs:
   #    - stepped wedge (SW)
   #    - cluster randomised crossover (CRXO)
   #    - parallel (pllel)
-  # and returns the average, minimum and maximum observed variances
-  # for each design
+  # and returns the median and lower and upper bound of the 95% CI of the
+  # observed variances for each design
   
   simvalslist <- replicate(nsims, variances_sim(rs, Tp, m, rho0, type), simplify=FALSE)
   # Save sim results
@@ -98,21 +96,16 @@ sim_results <- function(nsims, rs, Tp, m, rho0, type="uniform"){
     crxovals[,i] <- simvalslist[[i]]$crxo
     pllelvals[,i] <- simvalslist[[i]]$pllel
   }
-  SWvals_sorted <- t(apply(SWvals, 1, sort))
-  crxovals_sorted <- t(apply(crxovals, 1, sort))
-  pllelvals_sorted <- t(apply(pllelvals, 1, sort))
-  ub <- 0.975; ub_index <- round(ub*nsims)
-  lb <- 0.025; lb_index <- round(lb*nsims)
   simvals <- data.frame(decay=1-rs,
-                        SW.lower = SWvals_sorted[,lb_index],
-                        SW.avg = apply(SWvals, 1, mean),
-                        SW.upper = SWvals_sorted[,ub_index],
-                        crxo.lower = crxovals_sorted[,lb_index],
-                        crxo.avg = apply(crxovals, 1, mean),
-                        crxo.upper = crxovals_sorted[,ub_index],
-                        pllel.lower = pllelvals_sorted[,lb_index],
-                        pllel.avg = apply(pllelvals, 1, mean),
-                        pllel.upper = pllelvals_sorted[,ub_index])
+                        SW.lower = apply(SWvals, 1, quantile, probs=0.025),
+                        SW.median = apply(SWvals, 1, median),
+                        SW.upper = apply(SWvals, 1, quantile, probs=0.975),
+                        crxo.lower = apply(crxovals, 1, quantile, probs=0.025),
+                        crxo.median = apply(crxovals, 1, median),
+                        crxo.upper = apply(crxovals, 1, quantile, probs=0.975),
+                        pllel.lower = apply(pllelvals, 1, quantile, probs=0.025),
+                        pllel.median = apply(pllelvals, 1, median),
+                        pllel.upper = apply(pllelvals, 1, quantile, probs=0.975))
   return(simvals)
 }
 
@@ -125,11 +118,27 @@ rho0char <- strsplit(as.character(rho0),"\\.")[[1]][2]
 simvals <- sim_results(nsims=1000, rs=seq(0.5, 1, 0.01), Tp=Tp, m=m, rho0=rho0, type="uniform")
 save(simvals, file=paste0("plots/vars_nsims_1000_summary_uniform_T", Tp, "_m", m, "_rho", rho0char, ".Rda"))
 
-# TODO: Run these results
 simvalsexp <- sim_results(nsims=1000, rs=seq(0.5, 1, 0.01), Tp=Tp, m=m, rho0=rho0, type="exponential")
 save(simvalsexp, file=paste0("plots/vars_nsims_1000_summary_exponential_T", Tp, "_m", m, "_rho", rho0char, ".Rda"))
 
-sim_results_plots <- function(simvals, Tp, m, rho0, type="uniform"){
+# Extract legend
+g_legend <- function(a.gplot){
+  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)}
+
+make_1x2_multiplot <- function(p1, p2, legend, title){
+  p <- grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
+                                p2 + theme(legend.position="none"),
+                                ncol=2),
+                    legend, nrow=2, heights=c(10,1),
+                    top=textGrob(title,
+                                 gp=gpar(fontsize=18)))
+  return(p)
+}
+
+sim_results_plots <- function(simvals, Tp, m, rho0, title){
   
   # Convert for plotting
   simvals_long <- simvals %>%
@@ -147,11 +156,11 @@ sim_results_plots <- function(simvals, Tp, m, rho0, type="uniform"){
     select(-model)
   varvals <- merge(simvals_long, ctvarvals_long)
   
-  # TODO: Add comparison to ctvarvals_long back in
   # Plot results and compare to results under evenly-spaced assumption
-  p <- ggplot(data=simvals_long, aes(x=decay, colour=Design, linetype=Design)) +
-    geom_line(aes(y=avg), size=1.2) +
-    geom_ribbon(aes(ymin=lower, ymax=upper, fill=Design), alpha=0.3, show.legend=FALSE) +
+  p <- ggplot(data=varvals, aes(x=decay, colour=Design, linetype=Design)) +
+    geom_line(aes(y=median), size=1.0) +
+    geom_line(aes(y=Variance), size=0.5, colour="black", show.legend=FALSE) +
+    geom_ribbon(aes(ymin=lower, ymax=upper, fill=Design), alpha=0.3, show.legend=FALSE, colour=NA) +
     expand_limits(y=0) +
     scale_color_manual(values = c("#F8766D", "#00BA38", "#619CFF"),
                        labels = c("CRXO", "Parallel", "SW")) +
@@ -159,14 +168,20 @@ sim_results_plots <- function(simvals, Tp, m, rho0, type="uniform"){
                           labels = c("CRXO", "Parallel", "SW")) +
     xlab("Decay (1 - r)") +
     ylab("Variance") +
-    labs(title="Variance of treatment effect estimator, continuous-time correlation decay",
-         subtitle=paste0("Simulated measurement times,", type, " distribution")) +
+    labs(title=title) +
     theme_bw() +
-    theme(plot.title=element_text(hjust=0.5, size=20),
-          plot.subtitle=element_text(hjust=0.5, size=18),
-          axis.title=element_text(size=16), axis.text=element_text(size=16),
+    theme(plot.title=element_text(hjust=0.5, size=11),
+          axis.title=element_text(size=10), axis.text=element_text(size=10),
           legend.key.width = unit(1.5, "cm"),
-          legend.title=element_text(size=16), legend.text=element_text(size=14),
+          legend.title=element_text(size=12), legend.text=element_text(size=12),
           legend.position="bottom")
-  ggsave(paste0("plots/conts_sim_", type, "_compare_T", Tp, "_m", m, ".pdf"), p, width=297, height=210, units="mm")
 }
+
+load('plots/vars_nsims_1000_summary_uniform_T4_m50_rho04.Rda'); simvals_unif <- simvals
+load('plots/vars_nsims_1000_summary_exponential_T4_m50_rho04.Rda'); simvals_exp <- simvalsexp
+p1 <- sim_results_plots(simvals_unif, Tp=4, m=50, rho0=0.04, title="Uniformly-distributed simulated measurement times")
+p2 <- sim_results_plots(simvals_exp, Tp=4, m=50, rho0=0.04, title="Exponentially-distributed simulated measurement times")
+mylegend <- g_legend(p1)
+p1to2 <- make_1x2_multiplot(p1, p2, mylegend,
+                            title="Variance of treatment effect estimator, continuous-time correlation decay")
+ggsave(paste0("plots/conts_sim_unif_exp_compare_T4_m50_rho04.jpg"), p1to2, width=9, height=4, units="in", dpi=600)
