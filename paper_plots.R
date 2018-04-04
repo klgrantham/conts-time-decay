@@ -59,6 +59,7 @@ compare_designs <- function(df.long, ylabel, ylimits, Tp, m){
     labs(title=bquote(paste(.(Tp), " periods, ", .(m), " subjects/cluster-period"))) +
     theme_bw() +
     theme(plot.title=element_text(hjust=0.5, size=12),
+#          axis.title.y=element_text(angle=0, vjust=0.5),
           axis.title=element_text(size=10), axis.text=element_text(size=10),
           legend.key.width = unit(1.5, "cm"),
           legend.title=element_text(size=12), legend.text=element_text(size=12),
@@ -69,7 +70,7 @@ compare_designs <- function(df.long, ylabel, ylimits, Tp, m){
 # Convert continuous time results to long format
 long_ct <- function(df){
   ctvarvals <- df %>%
-    select(decay, starts_with('ct'), -ends_with('base')) %>%
+    select(decay, starts_with('ct')) %>%
     filter(decay<=0.5)
   ctvarvals_long <- gather(data=ctvarvals, key=Design, value=Variance,
                            -decay, convert=TRUE)
@@ -79,7 +80,7 @@ long_ct <- function(df){
 # Convert uniform results to long format
 long_HH <- function(df){
   HHvarvals <- df %>%
-    select(decay, starts_with('HH'), -ends_with('base')) %>%
+    select(decay, starts_with('HH')) %>%
     filter(decay<=0.5)
   HHvarvals_long <- gather(data=HHvarvals, key=Design, value=Variance,
                            -decay, convert=TRUE)
@@ -89,7 +90,7 @@ long_HH <- function(df){
 # Convert discrete time results to long format
 long_dt <- function(df){
   dtvarvals <- df %>%
-    select(decay, starts_with('dt'), -ends_with('base')) %>%
+    select(decay, starts_with('dt')) %>%
     filter(decay<=0.5)
   dtvarvals_long <- gather(data=dtvarvals, key=Design, value=Variance,
                            -decay, convert=TRUE)
@@ -132,46 +133,46 @@ p3 <- compare_designs(df.long=long_ct(vars_T8_m50),
 p4 <- compare_designs(df.long=long_ct(vars_T8_m500),
                       ylabel="Variance", ylimits=ylims, Tp=8, m=500)
 mylegend <- g_legend(p1)
-p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend,
-                            title="Variance of treatment effect estimator, continuous-time correlation decay")
+title <- expression(paste("Variance of treatment effect estimator, ", var(hat(theta)[CCD])))
+p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave(paste0("plots/conts_T4_8_m50_500_rho04.jpg"), p1to4, width=9, height=7, units="in", dpi=600)
 
 # Plot relative variance, HH vs continuous, all designs
 ylims <- c(0.0,4.0)
 p1 <- compare_designs(df.long=long_rel_HH_ct(vars_T4_m50),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=50) +
+                      ylabel="Relative variance", ylimits=ylims, Tp=4, m=50) +
       geom_hline(aes(yintercept=1))
 p2 <- compare_designs(df.long=long_rel_HH_ct(vars_T4_m500),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=500) +
+                      ylabel="Relative variance", ylimits=ylims, Tp=4, m=500) +
       geom_hline(aes(yintercept=1))
 p3 <- compare_designs(df.long=long_rel_HH_ct(vars_T8_m50),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=50) +
+                      ylabel="Relative variance", ylimits=ylims, Tp=8, m=50) +
       geom_hline(aes(yintercept=1))
 p4 <- compare_designs(df.long=long_rel_HH_ct(vars_T8_m500),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=500) +
+                      ylabel="Relative variance", ylimits=ylims, Tp=8, m=500) +
       geom_hline(aes(yintercept=1))
 mylegend <- g_legend(p1)
-p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend,
-                            title="Relative variance, uniform correlation vs continuous-time correlation decay")
+title <- expression(paste("Relative variance of treatment effect estimators, ", var(hat(theta)[UC])/var(hat(theta)[CCD])))
+p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave(paste0("plots/HH_vs_conts_50_500_rho04.jpg"), p1to4, width=9, height=7, units="in", dpi=600)
 
 # Plot relative variance, discrete vs continuous, all designs
 ylims <- c(0.5,3.0)
 p1 <- compare_designs(df.long=long_rel_dt_ct(vars_T4_m50),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=50) +
+                      ylabel="Relative variance", ylimits=ylims, Tp=4, m=50) +
       geom_hline(aes(yintercept=1))
 p2 <- compare_designs(df.long=long_rel_dt_ct(vars_T4_m500),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=4, m=500) +
+                      ylabel="Relative variance", ylimits=ylims, Tp=4, m=500) +
       geom_hline(aes(yintercept=1))
 p3 <- compare_designs(df.long=long_rel_dt_ct(vars_T8_m50),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=50) +
+                      ylabel="Relative variance", ylimits=ylims, Tp=8, m=50) +
       geom_hline(aes(yintercept=1))
 p4 <- compare_designs(df.long=long_rel_dt_ct(vars_T8_m500),
-                      ylabel="Variance ratio", ylimits=ylims, Tp=8, m=500) +
+                      ylabel="Relative variance", ylimits=ylims, Tp=8, m=500) +
       geom_hline(aes(yintercept=1))
 mylegend <- g_legend(p1)
-p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend,
-                            title="Relative variance, discrete-time vs continuous-time correlation decay")
+title <- expression(paste("Relative variance of treatment effect estimators, ", var(hat(theta)[DCD])/var(hat(theta)[CCD])))
+p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave(paste0("plots/dt_vs_conts_50_500_rho04.jpg"), p1to4, width=9, height=7, units="in", dpi=600)
 
 # Plot relative variance, continuous, mean vs individual level, all designs
@@ -184,32 +185,32 @@ vars_ind_mean_T8_m50 <- data.frame(long_ct(vars_T8_m50),
 vars_ind_mean_T8_m500 <- data.frame(long_ct(vars_T8_m500),
                              Variance_mean = long_ct(vars_ct_mean_T8_m500)$Variance)
 
-vars_indvsmean_ratios_T4_m50 <- vars_ind_mean_T4_m50 %>%
-  mutate(var_ratio = Variance/Variance_mean) %>%
+vars_meanvsind_ratios_T4_m50 <- vars_ind_mean_T4_m50 %>%
+  mutate(var_ratio = Variance_mean/Variance) %>%
   select(decay, Design, var_ratio)
-vars_indvsmean_ratios_T4_m500 <- vars_ind_mean_T4_m500 %>%
-  mutate(var_ratio = Variance/Variance_mean) %>%
+vars_meanvsind_ratios_T4_m500 <- vars_ind_mean_T4_m500 %>%
+  mutate(var_ratio = Variance_mean/Variance) %>%
   select(decay, Design, var_ratio)
-vars_indvsmean_ratios_T8_m50 <- vars_ind_mean_T8_m50 %>%
-  mutate(var_ratio = Variance/Variance_mean) %>%
+vars_meanvsind_ratios_T8_m50 <- vars_ind_mean_T8_m50 %>%
+  mutate(var_ratio = Variance_mean/Variance) %>%
   select(decay, Design, var_ratio)
-vars_indvsmean_ratios_T8_m500 <- vars_ind_mean_T8_m500 %>%
-  mutate(var_ratio = Variance/Variance_mean) %>%
+vars_meanvsind_ratios_T8_m500 <- vars_ind_mean_T8_m500 %>%
+  mutate(var_ratio = Variance_mean/Variance) %>%
   select(decay, Design, var_ratio)
 
-p1 <- compare_designs(vars_indvsmean_ratios_T4_m50, ylabel="Variance ratio",
-                     ylimits=c(0.5,1.0), Tp=4, m=50) +
+p1 <- compare_designs(vars_meanvsind_ratios_T4_m50, ylabel="Relative variance",
+                     ylimits=c(0.5,1.5), Tp=4, m=50) +
       geom_hline(aes(yintercept=1))
-p2 <- compare_designs(vars_indvsmean_ratios_T4_m500, ylabel="Variance ratio",
-                      ylimits=c(0.5,1.0), Tp=4, m=500) +
+p2 <- compare_designs(vars_meanvsind_ratios_T4_m500, ylabel="Relative variance",
+                      ylimits=c(0.5,1.5), Tp=4, m=500) +
       geom_hline(aes(yintercept=1))
-p3 <- compare_designs(vars_indvsmean_ratios_T8_m50, ylabel="Variance ratio",
-                      ylimits=c(0.5,1.0), Tp=8, m=50) +
+p3 <- compare_designs(vars_meanvsind_ratios_T8_m50, ylabel="Relative variance",
+                      ylimits=c(0.5,1.5), Tp=8, m=50) +
       geom_hline(aes(yintercept=1))
-p4 <- compare_designs(vars_indvsmean_ratios_T8_m500, ylabel="Variance ratio",
-                      ylimits=c(0.5,1.0), Tp=8, m=500) +
+p4 <- compare_designs(vars_meanvsind_ratios_T8_m500, ylabel="Relative variance",
+                      ylimits=c(0.5,1.5), Tp=8, m=500) +
       geom_hline(aes(yintercept=1))
 mylegend <- g_legend(p1)
-p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend,
-                            title="Relative variance, continuous-time correlation decay, mean vs individual level")
+title <- expression(paste("Relative variance of treatment effect estimators, ", var(hat(theta)[CCD][mean])/var(hat(theta)[CCD][ind])))
+p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave(paste0("plots/conts_meanvsind_ratio_50_500_rho04.jpg"), p1to4, width=9, height=7, units="in", dpi=600)

@@ -2,7 +2,7 @@
 #
 # Kelsey Grantham (kelsey.grantham@monash.edu)
 
-source('conts_time_comparison_plots.R')
+source('vartheta_twolevels.R')
 
 var_ct_mean_results <- function(Tp, m, rho0){
   # Get variances using cluster-mean-level covariance matrices
@@ -15,11 +15,12 @@ var_ct_mean_results <- function(Tp, m, rho0){
   # Note: Still need to expand the Xmats according to nclust
   # Scale the non-SW variances by (Tp/(Tp-1)) to account for uneven clusters across designs
   scalefactor <- Tp/(Tp-1)
+  Xmats <- list(SWdesmat(Tp), crxodesmat(Tp), plleldesmat(Tp))
+  ctres <- laply(ctmeanvarmat, vartheta_ind_vec, Xmat=Xmats)
   varvals <- data.frame(decay = 1-rs,
-                        ctmeanSW = laply(ctmeanvarmat, vartheta_ind, Xmat=SWdesmat(Tp)),
-                        ctmeancrxo = scalefactor*laply(ctmeanvarmat, vartheta_ind, Xmat=crxodesmat(Tp)),
-                        ctmeanpllel = scalefactor*laply(ctmeanvarmat, vartheta_ind, Xmat=plleldesmat(Tp)),
-                        ctmeanpllelbase = scalefactor*laply(ctmeanvarmat, vartheta_ind, Xmat=pllelbasedesmat(Tp)))
+                        ctmeanSW = ctres[,1],
+                        ctmeancrxo = scalefactor*ctres[,2],
+                        ctmeanpllel = scalefactor*ctres[,3])
   rho0char <- strsplit(as.character(rho0),"\\.")[[1]][2] # get numbers after decimal point
   save(varvals, file=paste0("plots/vars_ct_mean_T", Tp, "_m", m, "_rho", rho0char, ".Rda"))
 }
