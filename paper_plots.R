@@ -149,6 +149,7 @@ mylegend <- g_legend(p1)
 title <- expression(paste("Variance of treatment effect estimator, ", var(hat(theta)[CCD])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave(paste0("plots/conts_T4_8_m50_150_rho023.jpg"), p1to4, width=9, height=7, units="in", dpi=600)
+ggsave(paste0("plots/conts_T4_8_m50_150_rho023.pdf"), p1to4, width=9, height=7, units="in", dpi=600)
 
 # Plot relative variance, HH vs continuous, all designs
 ylims <- c(0.2,5.0)
@@ -168,6 +169,7 @@ mylegend <- g_legend(p1)
 title <- expression(paste("Relative variance of treatment effect estimators, ", var(hat(theta)[UC])/var(hat(theta)[CCD])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave(paste0("plots/HH_vs_conts_50_150_rho023.jpg"), p1to4, width=9, height=7, units="in", dpi=600)
+ggsave(paste0("plots/HH_vs_conts_50_150_rho023.pdf"), p1to4, width=9, height=7, units="in", dpi=600)
 
 # Plot relative variance, discrete vs continuous, all designs
 ylims <- c(0.8,2.0)
@@ -187,6 +189,7 @@ mylegend <- g_legend(p1)
 title <- expression(paste("Relative variance of treatment effect estimators, ", var(hat(theta)[DCD])/var(hat(theta)[CCD])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave(paste0("plots/dt_vs_conts_50_150_rho023.jpg"), p1to4, width=9, height=7, units="in", dpi=600)
+ggsave(paste0("plots/dt_vs_conts_50_150_rho023.pdf"), p1to4, width=9, height=7, units="in", dpi=600)
 
 # Plot relative variance, continuous, mean vs individual level, all designs
 vars_ind_mean_T4_m50 <- data.frame(long_ct(vars_T4_m50),
@@ -227,6 +230,7 @@ mylegend <- g_legend(p1)
 title <- expression(paste("Relative variance of treatment effect estimators, ", var(hat(theta)[CCD][mean])/var(hat(theta)[CCD][ind])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave(paste0("plots/conts_meanvsind_ratio_50_150_rho023.jpg"), p1to4, width=9, height=7, units="in", dpi=600)
+ggsave(paste0("plots/conts_meanvsind_ratio_50_150_rho023.pdf"), p1to4, width=9, height=7, units="in", dpi=600)
 
 # Plot variance and relative variance, continuous, different rho0 values
 
@@ -263,6 +267,7 @@ mylegend <- g_legend(p1)
 title <- expression(paste("4 periods, 50 subjects/cluster-period, ", rho, "=0.05"))
 p1to2 <- make_1x2_multiplot(p1, p2, mylegend, title=title)
 ggsave(paste0("plots/vars_T4_m50_rho05.jpg"), p1to2, width=9, height=4, units="in", dpi=600)
+ggsave(paste0("plots/vars_T4_m50_rho05.pdf"), p1to2, width=9, height=4, units="in", dpi=600)
 
 #Tp=4, m=10, rho0=0.01
 p1title <- expression(paste("Variance of treatment effect estimator, ", var(hat(theta)[CCD])))
@@ -276,3 +281,4 @@ mylegend <- g_legend(p1)
 title <- expression(paste("4 periods, 10 subjects/cluster-period, ", rho, "=0.01"))
 p1to2 <- make_1x2_multiplot(p1, p2, mylegend, title=title)
 ggsave(paste0("plots/vars_T4_m10_rho01.jpg"), p1to2, width=9, height=4, units="in", dpi=600)
+ggsave(paste0("plots/vars_T4_m10_rho01.pdf"), p1to2, width=9, height=4, units="in", dpi=600)
