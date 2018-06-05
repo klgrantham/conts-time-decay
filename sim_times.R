@@ -112,7 +112,7 @@ sim_results <- function(nsims, rs, Tp, m, rho0, type="uniform"){
 ##
 Tp <- 4
 m <- 50
-rho0 <- 0.04
+rho0 <- 0.023
 rho0char <- strsplit(as.character(rho0),"\\.")[[1]][2]
 
 simvals <- sim_results(nsims=1000, rs=seq(0.5, 1, 0.01), Tp=Tp, m=m, rho0=rho0, type="uniform")
@@ -150,7 +150,7 @@ sim_results_plots <- function(simvals, Tp, m, rho0, title){
   rho0char <- strsplit(as.character(rho0),"\\.")[[1]][2]
   load(paste0("plots/vars_T", Tp, "_m", m, "_rho", rho0char, ".Rda")); vars_assump <- varvals
   ctvarvals_long <- vars_assump %>%
-    select(decay, starts_with('ct'), -ends_with('base')) %>%
+    select(decay, starts_with('ct')) %>%
     gather(Design, Variance, -decay, convert=TRUE) %>%
     separate(Design, c("model", "Design"), sep=2) %>%
     select(-model)
@@ -177,11 +177,11 @@ sim_results_plots <- function(simvals, Tp, m, rho0, title){
           legend.position="bottom")
 }
 
-load('plots/vars_nsims_1000_summary_uniform_T4_m50_rho04.Rda'); simvals_unif <- simvals
-load('plots/vars_nsims_1000_summary_exponential_T4_m50_rho04.Rda'); simvals_exp <- simvalsexp
-p1 <- sim_results_plots(simvals_unif, Tp=4, m=50, rho0=0.04, title="Uniformly-distributed simulated measurement times")
-p2 <- sim_results_plots(simvals_exp, Tp=4, m=50, rho0=0.04, title="Exponentially-distributed simulated measurement times")
+load('plots/vars_nsims_1000_summary_uniform_T4_m50_rho023.Rda'); simvals_unif <- simvals
+load('plots/vars_nsims_1000_summary_exponential_T4_m50_rho023.Rda'); simvals_exp <- simvalsexp
+p1 <- sim_results_plots(simvals_unif, Tp=4, m=50, rho0=0.023, title="Uniformly-distributed")
+p2 <- sim_results_plots(simvals_exp, Tp=4, m=50, rho0=0.023, title="Exponentially-distributed")
 mylegend <- g_legend(p1)
-p1to2 <- make_1x2_multiplot(p1, p2, mylegend,
-                            title="Variance of treatment effect estimator, continuous-time correlation decay")
-ggsave(paste0("plots/conts_sim_unif_exp_compare_T4_m50_rho04.jpg"), p1to2, width=9, height=4, units="in", dpi=600)
+title <- expression(paste("Variance of treatment effect estimator, ", var(hat(theta)[CCD]), ", unevenly-spaced times"))
+p1to2 <- make_1x2_multiplot(p1, p2, mylegend, title=title)
+ggsave(paste0("plots/conts_sim_unif_exp_compare_T4_m50_rho023.jpg"), p1 to2, width=9, height=4, units="in", dpi=600)
