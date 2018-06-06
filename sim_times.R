@@ -179,9 +179,10 @@ sim_results_plots <- function(simvals, Tp, m, rho0, title){
 
 load('plots/vars_nsims_1000_summary_uniform_T4_m50_rho023.Rda'); simvals_unif <- simvals
 load('plots/vars_nsims_1000_summary_exponential_T4_m50_rho023.Rda'); simvals_exp <- simvalsexp
-p1 <- sim_results_plots(simvals_unif, Tp=4, m=50, rho0=0.023, title="Uniformly-distributed")
-p2 <- sim_results_plots(simvals_exp, Tp=4, m=50, rho0=0.023, title="Exponentially-distributed")
+p1 <- sim_results_plots(simvals_unif, Tp=4, m=50, rho0=0.023, title="Uniformly-distributed") + expand_limits(y=c(0,0.04))
+p2 <- sim_results_plots(simvals_exp, Tp=4, m=50, rho0=0.023, title="Exponentially-distributed") + expand_limits(y=c(0,0.04))
 mylegend <- g_legend(p1)
-title <- expression(paste("Variance of treatment effect estimator, ", var(hat(theta)[CCD]), ", unevenly-spaced times"))
+title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(theta)[CCD]), ", unevenly-spaced times"))
 p1to2 <- make_1x2_multiplot(p1, p2, mylegend, title=title)
-ggsave(paste0("plots/conts_sim_unif_exp_compare_T4_m50_rho023.jpg"), p1 to2, width=9, height=4, units="in", dpi=600)
+ggsave(paste0("plots/conts_sim_unif_exp_compare_T4_m50_rho023.jpg"), p1to2, width=9, height=4, units="in", dpi=600)
+ggsave(paste0("plots/conts_sim_unif_exp_compare_T4_m50_rho023.pdf"), p1to2, width=9, height=4, units="in", dpi=600)

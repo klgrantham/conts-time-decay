@@ -146,7 +146,7 @@ p3 <- compare_designs(df.long=long_ct(vars_T8_m50),
 p4 <- compare_designs(df.long=long_ct(vars_T8_m150),
                       ylabel="Variance", ylimits=ylims, Tp=8, m=150)
 mylegend <- g_legend(p1)
-title <- expression(paste("Variance of treatment effect estimator, ", var(hat(theta)[CCD])))
+title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(theta)[CCD])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave(paste0("plots/conts_T4_8_m50_150_rho023.jpg"), p1to4, width=9, height=7, units="in", dpi=600)
 ggsave(paste0("plots/conts_T4_8_m50_150_rho023.pdf"), p1to4, width=9, height=7, units="in", dpi=600)
@@ -166,7 +166,7 @@ p4 <- compare_designs(df.long=long_rel_HH_ct(vars_T8_m150),
                       ylabel="Relative variance", ylimits=ylims, Tp=8, m=150) +
       geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.2,0.5,1.0,2.0,5.0))
 mylegend <- g_legend(p1)
-title <- expression(paste("Relative variance of treatment effect estimators, ", var(hat(theta)[UC])/var(hat(theta)[CCD])))
+title <- expression(paste("Relative variance of treatment effect estimators, ", Var(hat(theta)[UC])/Var(hat(theta)[CCD])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave(paste0("plots/HH_vs_conts_50_150_rho023.jpg"), p1to4, width=9, height=7, units="in", dpi=600)
 ggsave(paste0("plots/HH_vs_conts_50_150_rho023.pdf"), p1to4, width=9, height=7, units="in", dpi=600)
@@ -186,7 +186,7 @@ p4 <- compare_designs(df.long=long_rel_dt_ct(vars_T8_m150),
                       ylabel="Relative variance", ylimits=ylims, Tp=8, m=150) +
       geom_hline(aes(yintercept=1)) + scale_y_continuous(breaks=c(0.8,1.2,1.6,2.0))
 mylegend <- g_legend(p1)
-title <- expression(paste("Relative variance of treatment effect estimators, ", var(hat(theta)[DCD])/var(hat(theta)[CCD])))
+title <- expression(paste("Relative variance of treatment effect estimators, ", Var(hat(theta)[DCD])/Var(hat(theta)[CCD])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave(paste0("plots/dt_vs_conts_50_150_rho023.jpg"), p1to4, width=9, height=7, units="in", dpi=600)
 ggsave(paste0("plots/dt_vs_conts_50_150_rho023.pdf"), p1to4, width=9, height=7, units="in", dpi=600)
@@ -227,7 +227,7 @@ p4 <- compare_designs(vars_meanvsind_ratios_T8_m150, ylabel="Relative variance",
                       ylimits=c(0.95,1.1), Tp=8, m=150) +
       geom_hline(aes(yintercept=1))
 mylegend <- g_legend(p1)
-title <- expression(paste("Relative variance of treatment effect estimators, ", var(hat(theta)[CCD][mean])/var(hat(theta)[CCD][ind])))
+title <- expression(paste("Relative variance of treatment effect estimators, ", Var(hat(theta)[CCD][mean])/Var(hat(theta)[CCD][ind])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave(paste0("plots/conts_meanvsind_ratio_50_150_rho023.jpg"), p1to4, width=9, height=7, units="in", dpi=600)
 ggsave(paste0("plots/conts_meanvsind_ratio_50_150_rho023.pdf"), p1to4, width=9, height=7, units="in", dpi=600)
@@ -256,10 +256,10 @@ compare_designs_1by2 <- function(df.long, ylabel, ylimits, title){
 }
 
 # Tp=4, m=50, rho0=0.05
-p1title <- expression(paste("Variance of treatment effect estimator, ", var(hat(theta)[CCD])))
+p1title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(theta)[CCD])))
 p1 <- compare_designs_1by2(df.long=long_ct(vars_T4_m50_rho05),
                            ylabel="Variance", ylimits=c(0.0,0.08), title=p1title)
-p2title <- expression(paste("Relative variance, ", var(hat(theta)[UC])/var(hat(theta)[CCD])))
+p2title <- expression(paste("Relative variance, ", Var(hat(theta)[UC])/Var(hat(theta)[CCD])))
 p2 <- compare_designs_1by2(df.long=long_rel_HH_ct(vars_T4_m50_rho05),
                            ylabel="Relative variance", ylimits=c(0.5,2.0), title=p2title) +
       geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.5,1.0,2.0))
@@ -270,10 +270,10 @@ ggsave(paste0("plots/vars_T4_m50_rho05.jpg"), p1to2, width=9, height=4, units="i
 ggsave(paste0("plots/vars_T4_m50_rho05.pdf"), p1to2, width=9, height=4, units="in", dpi=600)
 
 #Tp=4, m=10, rho0=0.01
-p1title <- expression(paste("Variance of treatment effect estimator, ", var(hat(theta)[CCD])))
+p1title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(theta)[CCD])))
 p1 <- compare_designs_1by2(df.long=long_ct(vars_T4_m10_rho01),
                            ylabel="Variance", ylimits=c(0.0,0.1), title=p1title)
-p2title <- expression(paste("Relative variance, ", var(hat(theta)[UC])/var(hat(theta)[CCD])))
+p2title <- expression(paste("Relative variance, ", Var(hat(theta)[UC])/Var(hat(theta)[CCD])))
 p2 <- compare_designs_1by2(df.long=long_rel_HH_ct(vars_T4_m10_rho01),
                            ylabel="Relative variance", ylimits=c(0.5,2.0), title=p2title) +
   geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.5,1.0,2.0))
