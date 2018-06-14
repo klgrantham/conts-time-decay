@@ -216,7 +216,27 @@ prepostdesmat <- function(Tp){
   return(Xpllelbase)
 }
 
-# Generate variance results
+var_ct_mean_results <- function(Tp, m, rho0){
+  # Get variances using cluster-mean-level covariance matrices
+  rs <- seq(0.5, 1, 0.01)
+  # Specify the variance matrices under the continuous time model
+  ctmeanvarmat <- llply(rs, expdecayVicont, Tp, m, rho0, meanlvl=TRUE)
+  
+  # Get the variances of the treatment effect under the
+  # different models and designs
+  # Scale the non-SW variances by (Tp/(Tp-1)) to account for uneven clusters across designs
+  scalefactor <- Tp/(Tp-1)
+  Xmats <- list(SWdesmat(Tp), crxodesmat(Tp), plleldesmat(Tp))
+  ctres <- laply(ctmeanvarmat, vartheta_ind_vec, Xmat=Xmats)
+  varvals <- data.frame(decay = 1-rs,
+                        ctmeanSW = ctres[,1],
+                        ctmeancrxo = scalefactor*ctres[,2],
+                        ctmeanpllel = scalefactor*ctres[,3])
+  rho0char <- strsplit(as.character(rho0),"\\.")[[1]][2] # get numbers after decimal point
+  save(varvals, file=paste0("plots/vars_ct_mean_T", Tp, "_m", m, "_rho", rho0char, ".Rda"))
+}
+
+# Generate main variance results
 generate_var_results  <- function(Tp, m, rho0) {
   # Calculates the variance of the treatment effect estimator under the models:
   #    continuous time (ct), discrete time (dt), Hussey & Hughes (HH)
@@ -230,7 +250,7 @@ generate_var_results  <- function(Tp, m, rho0) {
   # m - number of subjects measured in each time period
   # rho0 - base correlation between a pair of subjects
   #
-  # Example usage: vals <- generate_var_results(Tp=4, m=50, rho0=0.035)
+  # Example usage: vals <- generate_var_results(Tp=4, m=50, rho0=0.023)
   
   # Set vector of r values (Decay = 1-r)
   rs <- seq(0.5, 1, 0.01)
