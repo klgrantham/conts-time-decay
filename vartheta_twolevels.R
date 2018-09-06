@@ -261,3 +261,48 @@ generate_var_results  <- function(Tp, m, rho0) {
   
   return(varvals)
 }
+
+generate_var_results_rhos <- function(Tp, m, rho0_CD, rho0_UC) {
+  # Calculates the variance of the treatment effect estimator under the models:
+  #    continuous time (ct), discrete time (dt), Hussey & Hughes (HH)
+  # with trial designs:
+  #    stepped wedge (SW),
+  #    cluster randomised crossover (CRXO),
+  #    parallel (pllel)
+  #
+  # Inputs:
+  # Tp - number of time periods in the trial
+  # m - number of subjects measured in each time period
+  # rho0 - base correlation between a pair of subjects
+  #
+  # Example usage: vals <- generate_var_results(Tp=4, m=50, rho0=0.035)
+  
+  # Set vector of r values (Decay = 1-r)
+  rs <- seq(0.5, 1, 0.01)
+  # Specify the covariance matrices under the different models
+  ctvarmat <- llply(rs, expdecayVicont, Tp, m, rho0_CD, meanlvl=FALSE)
+  dtvarmat <- llply(rs, expdecayVi, Tp, m, rho0_CD, meanlvl=TRUE)
+  HHvarmat <- HHVi(Tp, m, rho0_UC, meanlvl=TRUE)
+  
+  # Get the variances of the treatment effect estimator under the
+  # different models and designs
+  scalefactor <- Tp/(Tp-1)
+  Xmats <- list(SWdesmat(Tp), crxodesmat(Tp), plleldesmat(Tp))
+  ctres <- laply(ctvarmat, vartheta_ind_vec, Xmat=Xmats)
+  varvals <- data.frame(decay=1-rs,
+                        ctSW = ctres[,1],
+                        ctcrxo = scalefactor*ctres[,2],
+                        ctpllel = scalefactor*ctres[,3],
+                        dtSW = laply(dtvarmat, vartheta_mean, Xmat=SWdesmat(Tp)),
+                        dtcrxo = scalefactor*laply(dtvarmat, vartheta_mean, Xmat=crxodesmat(Tp)),
+                        dtpllel = scalefactor*laply(dtvarmat, vartheta_mean, Xmat=plleldesmat(Tp)),
+                        HHSW = vartheta_mean(Vi=HHvarmat, Xmat=SWdesmat(Tp)),
+                        HHcrxo = scalefactor*vartheta_mean(Vi=HHvarmat, Xmat=crxodesmat(Tp)),
+                        HHpllel = scalefactor*vartheta_mean(Vi=HHvarmat, Xmat=plleldesmat(Tp)))
+  
+  # Save results to R data file
+  rho0CDchar <- strsplit(as.character(rho0_CD),"\\.")[[1]][2] # get numbers after decimal point
+  rho0UCchar <- strsplit(as.character(rho0_UC),"\\.")[[1]][2]
+  save(varvals, file=paste0("plots/vars_T", Tp, "_m", m, "_rhoCD", rho0CDchar, "_rhoUC", rho0UCchar, ".Rda"))
+  return(varvals)
+}
