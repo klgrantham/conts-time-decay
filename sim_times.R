@@ -1,5 +1,7 @@
-# Simulates arrival times and calculates variance of treatment effect
-# Note: Does not assume evenly spaced arrival times
+# Simulates measurement times and calculates variance of
+# treatment effect estimator
+#
+# Relaxes assumption of evenly-spaced times
 #
 # Kelsey Grantham (kelsey.grantham@monash.edu)
 
@@ -13,26 +15,27 @@ library(grid)
 source('vartheta_twolevels.R')
 
 Vicontsim <- function(Tp, m, rho0, type="uniform"){
-  # Returns a function for the variance matrix for a single cluster, Vi,
-  # in terms of the base correlation, r (where rate of decay is 1-r),
-  # under the continuous time model at the individual level with arrival times
-  # randomly drawn from a uniform distribution, i.e. WITHOUT the assumption
-  # of evenly spaced arrival times.
+  # Returns a function for the covariance matrix for a single cluster, Vi,
+  # in terms of r (where rate of decay is 1-r) under the continuous-time
+  # model at the individual level with measurement times randomly drawn
+  # from a uniform distribution or exponential distribution,
+  # i.e. WITHOUT the assumption of evenly-spaced times.
   #
   # Inputs:
   # Tp - number of time periods
-  # m - number of individuals per cluster
-  # rho0 - proportion of total variation attributed to cluster-period random effects
+  # m - number of subjects per cluster-period
+  # rho0 - base correlation between a pair of subjects' outcomes
+  # type - "uniform" or "exponential" distribution
 
   totalvar <- 1
   sig2CP <- rho0*totalvar
   sig2E <- totalvar - sig2CP
 
-  # Generate arrival times
+  # Generate times
   if (type=="uniform"){
     x <- runif(Tp*m, 0, 1) # Generate vector of fractional times
     j <- rep(1:Tp, each=m) # Create vector of time period indices and add to fractional times
-    times <- sort(j + x) # Combine to create arrival times
+    times <- sort(j + x) # Combine to create scaled measurement times
   } else if (type=="exponential"){
     x <- matrix(rexp(Tp*m), m, Tp)
     colmaxs <- apply(x, 2, max)
@@ -53,9 +56,9 @@ Vicontsim <- function(Tp, m, rho0, type="uniform"){
 }
 
 variances_sim <- function(rs, Tp, m, rho0, type="uniform"){
-  # Calculates the variance of the treatment effect under the
-  # continuous time model at the individual level with simulated
-  # arrival times from a uniform distribution, with trial designs:
+  # Calculates the variance of the treatment effect estimator under the
+  # continuous-time model at the individual level with unevenly-spaced
+  # measurement times, with trial designs:
   #    - stepped wedge (SW)
   #    - cluster randomised crossover (CRXO)
   #    - parallel (pllel)
@@ -79,7 +82,7 @@ sim_results <- function(nsims, rs, Tp, m, rho0, type="uniform"){
   #    - stepped wedge (SW)
   #    - cluster randomised crossover (CRXO)
   #    - parallel (pllel)
-  # and returns the median and lower and upper bound of the 95% CI of the
+  # and returns the median, 2.5th and 97.5th percentiles of the
   # observed variances for each design
   
   simvalslist <- replicate(nsims, variances_sim(rs, Tp, m, rho0, type), simplify=FALSE)
@@ -185,4 +188,4 @@ mylegend <- g_legend(p1)
 title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(theta)[CCD]), ", unevenly-spaced times"))
 p1to2 <- make_1x2_multiplot(p1, p2, mylegend, title=title)
 ggsave(paste0("plots/conts_sim_unif_exp_compare_T4_m50_rho023.jpg"), p1to2, width=9, height=4, units="in", dpi=600)
-ggsave(paste0("plots/conts_sim_unif_exp_compare_T4_m50_rho023.pdf"), p1to2, width=9, height=4, units="in", dpi=600)
+ggsave(paste0("plots/conts_sim_unif_exp_compare_T4_m50_rho023.eps"), p1to2, width=9, height=4, units="in", dpi=600)

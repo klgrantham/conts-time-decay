@@ -3,13 +3,4 @@
 .RData
 .Ruserdata
 *.Rproj
-*.png
 plots/
-datasets/
-cluster_numbers_exploration.R
-correlation_comparisons.R
-fit_model.R
-inverse_options_timing.R
-inverse_rework_timing.R
-mixed_effects_practice.R
-paper_plots_SCT.R

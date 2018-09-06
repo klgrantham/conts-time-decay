@@ -1,10 +1,7 @@
-# Investigating the variance of the treatment effect at the
-# cluster-period mean level and the individual level
+# Investigating the variance of the treatment effect estimator
+# under different models and designs
 #
 # Kelsey Grantham (kelsey.grantham@monash.edu)
-
-# Equations for variance of treatment effect
-# Mean and individual level
 
 library(ltsa)
 library(plyr)
@@ -14,8 +11,8 @@ vartheta_mean <- function(Vi, Xmat){
   # cluster mean level with a particular treatment schedule
   #
   # Inputs:
+  # Vi - a T x T covariance matrix for one cluster
   # Xmat - a K x T matrix of the treatment schedule (note: all elements either 0 or 1)
-  # Vi - a T x T variance matrix for one cluster
   
   K <- nrow(Xmat)
   Tp <- ncol(Xmat)
@@ -31,11 +28,11 @@ vartheta_ind_vec <- function(Vi, Xmat, Toeplitz=TRUE){
   # individual level with a particular treatment schedule
   #
   # Inputs:
-  # Xmat - a vector of K x T matrices of the treatment schedule (note: all elements either 0 or 1)
   # Vi - a Tm x Tm variance matrix for one cluster
+  # Xmat - a vector of K x T matrices of the treatment schedule (note: all elements either 0 or 1)
   
   # If continuous time matrix, use Toeplitz inversion algorithm
-  if(Toeplitz){ # Could check for Vi[1,2]!=Vi[1,3] but w/ simulated times won't be Toeplitz
+  if(Toeplitz){
     Vi_inv <- TrenchInverse(Vi)
   } else{
     Vi_inv <- solve(Vi)
@@ -56,7 +53,7 @@ vartheta <- function(Xmat, Vi_inv) {
   Q <- Xmat %x% t(rep(1,m))
   B <- colSums(Xmat) %x% rep(1,m)
   C <- diag(Tp) %x% rep(1,m)
-  term1 <- sum(diag(Q %*% Vi_inv %*% t(Q))) # Previously: t(D) %*% (diag(1,K) %x% Vi_inv) %*% D, where D <- Xvec %x% rep(1,m)
+  term1 <- sum(diag(Q %*% Vi_inv %*% t(Q)))
   term2 <- t(B) %*% Vi_inv %*% C
   term3 <- solve(t(C) %*% Vi_inv %*% C)
   term4 <- t(C) %*% Vi_inv %*% B
@@ -65,18 +62,18 @@ vartheta <- function(Xmat, Vi_inv) {
 }
 
 # Variance matrices under different models
-# Hussey & Hughes, discrete time decay, continuous time decay
+# Uniform correlation (Hussey & Hughes), discrete time decay, continuous time decay
 
 HHVi <- function(Tp, m, rho0, meanlvl=TRUE){
-  # Constructs the variance matrix for a single cluster, Vi, under the
+  # Constructs the covariance matrix for a single cluster, Vi, under the
   # Hussey & Hughes model (2007), at either the cluster mean level or
   # at the individual level
   #
   # Inputs:
   # Tp - number of time periods
-  # m - number of individuals per cluster
-  # rho0 - proportion of total variation attributed to cluster random effects
-  # meanlvl - boolean for whether to construct the variance matrix for the
+  # m - number of subjects per cluster-period
+  # rho0 - base correlation between a pair of subjects' outcomes
+  # meanlvl - boolean for whether to construct the covariance matrix for the
   #           cluster mean level (default) or the individual level
 
   totalvar <- 1
@@ -93,15 +90,16 @@ HHVi <- function(Tp, m, rho0, meanlvl=TRUE){
 }
 
 expdecayVi <- function(r, Tp, m, rho0, meanlvl=TRUE){
-  # Constructs the variance matrix for a single cluster, Vi, under the
-  # exponential decay model (Kasza et al 2017), at either the cluster-
+  # Constructs the covariance matrix for a single cluster, Vi, under the
+  # discrete-time decay model (Kasza et al 2017), at either the cluster-
   # period mean level or at the individual level
   #
   # Inputs:
+  # r - proportionate reduction in correlation
   # Tp - number of time periods
-  # m - number of individuals per cluster
-  # rho0 - proportion of total variation attributed to cluster-period random effects
-  # meanlvl - boolean for whether to construct the variance matrix for the
+  # m - number of subjects per cluster-period
+  # rho0 - base correlation between a pair of subjects' outcomes
+  # meanlvl - boolean for whether to construct the covariance matrix for the
   #           cluster-period mean level (default) or the individual level
 
   totalvar <- 1
@@ -122,15 +120,16 @@ expdecayVi <- function(r, Tp, m, rho0, meanlvl=TRUE){
 }
 
 expdecayVicont <- function(r, Tp, m, rho0, meanlvl=FALSE){
-  # Constructs the variance matrix for a single cluster, Vi, under the
-  # exponential decay model in continuous itme, at either the cluster-
+  # Constructs the covariance matrix for a single cluster, Vi, under the
+  # continuous-time correlation decay model, at either the cluster-
   # period mean level or at the individual level
   #
   # Inputs:
+  # r - proportionate reduction in correlation
   # Tp - number of time periods
-  # m - number of individuals per cluster
-  # rho0 - proportion of total variation attributed to cluster-period random effects
-  # meanlvl - boolean for whether to construct the variance matrix for the
+  # m - number of subjects per cluster-period
+  # rho0 - base correlation between a pair of subjects' outcomes
+  # meanlvl - boolean for whether to construct the covariance matrix for the
   #           cluster-period mean level or the individual level (default)
   
   totalvar <- 1
@@ -152,14 +151,14 @@ expdecayVicont <- function(r, Tp, m, rho0, meanlvl=FALSE){
   }
   else{
       Vi <- diag(sig2E,Tp*m) +
-        sig2CP*(r^(abs(matrix(rep(1:(Tp*m)), nrow=Tp*m, ncol=Tp*m, byrow=FALSE) -
-                       matrix(rep(1:(Tp*m)), nrow=Tp*m, ncol=Tp*m, byrow=TRUE))/m))
+            sig2CP*(r^(abs(matrix(rep(1:(Tp*m)), nrow=Tp*m, ncol=Tp*m, byrow=FALSE) -
+                           matrix(rep(1:(Tp*m)), nrow=Tp*m, ncol=Tp*m, byrow=TRUE))/m))
   }
   return(Vi)
 }
 
-# Design matrices (or treatment schedules) for different trial designs
-# Stepped wedge (SW), cluster randomised crossover (CRXO), parallel, parallel w/baseline
+# Design matrices for different trial designs
+# Stepped wedge (SW), cluster randomised crossover (CRXO), parallel
 
 SWdesmat <- function(Tp){
   Xsw <- matrix(data=0, ncol=Tp, nrow=(Tp-1))
@@ -192,31 +191,28 @@ plleldesmat <- function(Tp){
   return(Xpllel)
 }
 
-pllelbasedesmat <- function(Tp){
-  if(Tp%%2==0) {
-    nclust <- Tp
-  } else {
-    nclust <- Tp-1
-  }
-  Xpllelbase <- matrix(data=0, ncol=Tp, nrow=nclust)
-  Xpllelbase[1:nclust/2, 2:Tp] <- 1
-  return(Xpllelbase)
+
+var_ct_mean_results <- function(Tp, m, rho0){
+  # Get variances using cluster-mean-level covariance matrices
+  rs <- seq(0.5, 1, 0.01)
+  # Specify the covariance matrices under the continuous-time model
+  ctmeanvarmat <- llply(rs, expdecayVicont, Tp, m, rho0, meanlvl=TRUE)
+  
+  # Get the variance of the treatment effect estimator under the
+  # different models and designs
+  # Scale the non-SW variances by (Tp/(Tp-1)) to account for unequal clusters across designs
+  scalefactor <- Tp/(Tp-1)
+  Xmats <- list(SWdesmat(Tp), crxodesmat(Tp), plleldesmat(Tp))
+  ctres <- laply(ctmeanvarmat, vartheta_ind_vec, Xmat=Xmats)
+  varvals <- data.frame(decay = 1-rs,
+                        ctmeanSW = ctres[,1],
+                        ctmeancrxo = scalefactor*ctres[,2],
+                        ctmeanpllel = scalefactor*ctres[,3])
+  rho0char <- strsplit(as.character(rho0),"\\.")[[1]][2] # get numbers after decimal point
+  save(varvals, file=paste0("plots/vars_ct_mean_T", Tp, "_m", m, "_rho", rho0char, ".Rda"))
 }
 
-prepostdesmat <- function(Tp){
-  if(Tp%%2==0) {
-    nclust <- Tp
-    Xpllelbase <- matrix(data=0, ncol=Tp, nrow=nclust)
-    Xpllelbase[1:nclust/2, (Tp/2+1):Tp] <- 1
-  } else {
-    nclust <- Tp-1
-    Xpllelbase <- matrix(data=0, ncol=Tp, nrow=nclust)
-    Xpllelbase[1:nclust/2, ceiling(Tp/2):Tp] <- 1
-  }
-  return(Xpllelbase)
-}
-
-# Generate variance results
+# Generate main variance results
 generate_var_results  <- function(Tp, m, rho0) {
   # Calculates the variance of the treatment effect estimator under the models:
   #    continuous time (ct), discrete time (dt), Hussey & Hughes (HH)
@@ -227,10 +223,10 @@ generate_var_results  <- function(Tp, m, rho0) {
   #
   # Inputs:
   # Tp - number of time periods in the trial
-  # m - number of subjects measured in each time period
-  # rho0 - base correlation between a pair of subjects
+  # m - number of subjects measured in each cluster-period
+  # rho0 - base correlation between a pair of subjects' outcomes
   #
-  # Example usage: vals <- generate_var_results(Tp=4, m=50, rho0=0.035)
+  # Example usage: vals <- generate_var_results(Tp=4, m=50, rho0=0.023)
   
   # Set vector of r values (Decay = 1-r)
   rs <- seq(0.5, 1, 0.01)
