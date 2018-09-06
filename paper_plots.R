@@ -17,6 +17,11 @@ load("plots/vars_T8_m50_rho023.Rda"); vars_T8_m50 <- varvals
 load("plots/vars_T4_m150_rho023.Rda"); vars_T4_m150 <- varvals
 load("plots/vars_T8_m150_rho023.Rda"); vars_T8_m150 <- varvals
 
+load("plots/vars_T4_m50_rhoCD023_rhoUC019.Rda"); vars_T4_m50 <- varvals
+load("plots/vars_T8_m50_rhoCD023_rhoUC019.Rda"); vars_T8_m50 <- varvals
+load("plots/vars_T4_m150_rhoCD023_rhoUC019.Rda"); vars_T4_m150 <- varvals
+load("plots/vars_T8_m150_rhoCD023_rhoUC019.Rda"); vars_T8_m150 <- varvals
+
 load("plots/vars_ct_mean_T4_m50_rho023.Rda"); vars_ct_mean_T4_m50 <- varvals
 load("plots/vars_ct_mean_T8_m50_rho023.Rda"); vars_ct_mean_T8_m50 <- varvals
 load("plots/vars_ct_mean_T4_m150_rho023.Rda"); vars_ct_mean_T4_m150 <- varvals
