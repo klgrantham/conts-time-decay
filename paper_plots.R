@@ -12,18 +12,18 @@ library(grid)
 source('vartheta_twolevels.R')
 
 # Load results for different trial configurations
-load("plots/vars_T4_m50_rhoCD023_rhoUC019.Rda"); vars_T4_m50 <- varvals
-load("plots/vars_T8_m50_rhoCD023_rhoUC019.Rda"); vars_T8_m50 <- varvals
-load("plots/vars_T4_m150_rhoCD023_rhoUC019.Rda"); vars_T4_m150 <- varvals
-load("plots/vars_T8_m150_rhoCD023_rhoUC019.Rda"); vars_T8_m150 <- varvals
+load("plots/vars_T4_N6_m50_rhoCD023_rhoUC019.Rda"); vars_T4_m50 <- varvals
+load("plots/vars_T8_N14_m50_rhoCD023_rhoUC019.Rda"); vars_T8_m50 <- varvals
+load("plots/vars_T4_N6_m150_rhoCD023_rhoUC019.Rda"); vars_T4_m150 <- varvals
+load("plots/vars_T8_N14_m150_rhoCD023_rhoUC019.Rda"); vars_T8_m150 <- varvals
 
-load("plots/vars_ct_mean_T4_m50_rho023.Rda"); vars_ct_mean_T4_m50 <- varvals
-load("plots/vars_ct_mean_T8_m50_rho023.Rda"); vars_ct_mean_T8_m50 <- varvals
-load("plots/vars_ct_mean_T4_m150_rho023.Rda"); vars_ct_mean_T4_m150 <- varvals
-load("plots/vars_ct_mean_T8_m150_rho023.Rda"); vars_ct_mean_T8_m150 <- varvals
+load("plots/vars_ct_mean_T4_N6_m50_rho023.Rda"); vars_ct_mean_T4_m50 <- varvals
+load("plots/vars_ct_mean_T8_N14_m50_rho023.Rda"); vars_ct_mean_T8_m50 <- varvals
+load("plots/vars_ct_mean_T4_N6_m150_rho023.Rda"); vars_ct_mean_T4_m150 <- varvals
+load("plots/vars_ct_mean_T8_N14_m150_rho023.Rda"); vars_ct_mean_T8_m150 <- varvals
 
-load("plots/vars_T4_m50_rhoCD05_rhoUC05.Rda"); vars_T4_m50_rho05 <- varvals
-load("plots/vars_T4_m10_rhoCD01_rhoUC01.Rda"); vars_T4_m10_rho01 <- varvals
+load("plots/vars_T4_N6_m50_rhoCD05_rhoUC05.Rda"); vars_T4_m50_rho05 <- varvals
+load("plots/vars_T4_N6_m10_rhoCD01_rhoUC01.Rda"); vars_T4_m10_rho01 <- varvals
 
 
 # Extract legend
@@ -129,7 +129,7 @@ long_rel_dt_ct <- function(df){
 
 
 # Plot variances, continuous-time, all designs
-ylims <- c(0.0,0.04)
+ylims <- c(0.0,0.02)
 p1 <- compare_designs(df.long=long_ct(vars_T4_m50),
                       ylabel="Variance", ylimits=ylims, Tp=4, m=50)
 p2 <- compare_designs(df.long=long_ct(vars_T4_m150),
@@ -254,7 +254,7 @@ compare_designs_1by2 <- function(df.long, ylabel, ylimits, title){
 # Tp=4, m=50, rho0=0.05
 p1title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(theta)[CCD])))
 p1 <- compare_designs_1by2(df.long=long_ct(vars_T4_m50_rho05),
-                           ylabel="Variance", ylimits=c(0.0,0.08), title=p1title)
+                           ylabel="Variance", ylimits=c(0.0,0.04), title=p1title)
 p2title <- expression(paste("Relative variance, ", Var(hat(theta)[UC])/Var(hat(theta)[CCD])))
 p2 <- compare_designs_1by2(df.long=long_rel_HH_ct(vars_T4_m50_rho05),
                            ylabel="Relative variance", ylimits=c(0.5,2.0), title=p2title) +
@@ -268,7 +268,7 @@ ggsave("plots/vars_T4_m50_rho05.eps", p1to2, width=9, height=4, units="in", dpi=
 # Tp=4, m=10, rho0=0.01
 p1title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(theta)[CCD])))
 p1 <- compare_designs_1by2(df.long=long_ct(vars_T4_m10_rho01),
-                           ylabel="Variance", ylimits=c(0.0,0.1), title=p1title)
+                           ylabel="Variance", ylimits=c(0.0,0.05), title=p1title)
 p2title <- expression(paste("Relative variance, ", Var(hat(theta)[UC])/Var(hat(theta)[CCD])))
 p2 <- compare_designs_1by2(df.long=long_rel_HH_ct(vars_T4_m10_rho01),
                            ylabel="Relative variance", ylimits=c(0.5,2.0), title=p2title) +
