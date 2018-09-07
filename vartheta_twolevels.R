@@ -213,7 +213,7 @@ var_ct_mean_results <- function(Tp, m, rho0){
 }
 
 # Generate main variance results
-generate_var_results  <- function(Tp, m, rho0) {
+generate_var_results  <- function(Tp, m, rho0_CD, rho0_UC) {
   # Calculates the variance of the treatment effect estimator under the models:
   #    continuous time (ct), discrete time (dt), Hussey & Hughes (HH)
   # with trial designs:
@@ -231,9 +231,9 @@ generate_var_results  <- function(Tp, m, rho0) {
   # Set vector of r values (Decay = 1-r)
   rs <- seq(0.5, 1, 0.01)
   # Specify the covariance matrices under the different models
-  ctvarmat <- llply(rs, expdecayVicont, Tp, m, rho0, meanlvl=FALSE)
-  dtvarmat <- llply(rs, expdecayVi, Tp, m, rho0, meanlvl=TRUE)
-  HHvarmat <- HHVi(Tp, m, rho0, meanlvl=TRUE)
+  ctvarmat <- llply(rs, expdecayVicont, Tp, m, rho0_CD, meanlvl=FALSE)
+  dtvarmat <- llply(rs, expdecayVi, Tp, m, rho0_CD, meanlvl=TRUE)
+  HHvarmat <- HHVi(Tp, m, rho0_UC, meanlvl=TRUE)
 
   # Get the variances of the treatment effect estimator under the
   # different models and designs
@@ -252,8 +252,8 @@ generate_var_results  <- function(Tp, m, rho0) {
                         HHpllel = scalefactor*vartheta_mean(Vi=HHvarmat, Xmat=plleldesmat(Tp)))
 
   # Save results to R data file
-  rho0char <- strsplit(as.character(rho0),"\\.")[[1]][2] # get numbers after decimal point
-  save(varvals, file=paste0("plots/vars_T", Tp, "_m", m, "_rho", rho0char, ".Rda"))
-  
+  rho0CDchar <- strsplit(as.character(rho0_CD),"\\.")[[1]][2] # get numbers after decimal point
+  rho0UCchar <- strsplit(as.character(rho0_UC),"\\.")[[1]][2]
+  save(varvals, file=paste0("plots/vars_T", Tp, "_m", m, "_rhoCD", rho0CDchar, "_rhoUC", rho0UCchar, ".Rda"))
   return(varvals)
 }

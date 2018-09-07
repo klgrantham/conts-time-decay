@@ -4,16 +4,17 @@
 
 source('vartheta_twolevels.R')
 
-rho <- 0.023
-generate_var_results(Tp=4, m=50, rho0=rho)
-generate_var_results(Tp=4, m=150, rho0=rho)
-generate_var_results(Tp=8, m=50, rho0=rho)
-generate_var_results(Tp=8, m=150, rho0=rho)
+rhoCD <- 0.023
+rhoUC <- 0.019
+generate_var_results(Tp=4, m=50, rho0_CD=rhoCD, rho0_UC=rhoUC)
+generate_var_results(Tp=4, m=150, rho0_CD=rhoCD, rho0_UC=rhoUC)
+generate_var_results(Tp=8, m=50, rho0_CD=rhoCD, rho0_UC=rhoUC)
+generate_var_results(Tp=8, m=150, rho0_CD=rhoCD, rho0_UC=rhoUC)
 
-var_ct_mean_results(Tp=4, m=50, rho0=rho)
-var_ct_mean_results(Tp=4, m=150, rho0=rho)
-var_ct_mean_results(Tp=8, m=50, rho0=rho)
-var_ct_mean_results(Tp=8, m=150, rho0=rho)
+var_ct_mean_results(Tp=4, m=50, rho0=rhoCD)
+var_ct_mean_results(Tp=4, m=150, rho0=rhoCD)
+var_ct_mean_results(Tp=8, m=50, rho0=rhoCD)
+var_ct_mean_results(Tp=8, m=150, rho0=rhoCD)
 
-generate_var_results(Tp=4, m=50, rho0=0.05)
-generate_var_results(Tp=4, m=10, rho0=0.01)
+generate_var_results(Tp=4, m=50, rho0_CD=0.05, rho0_UC=0.05)
+generate_var_results(Tp=4, m=10, rho0_CD=0.01, rho0_UC=0.01)
