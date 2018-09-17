@@ -25,6 +25,11 @@ load("plots/vars_ct_mean_T8_N14_m150_rho023.Rda"); vars_ct_mean_T8_m150 <- varva
 load("plots/vars_T4_N6_m50_rhoCD05_rhoUC05.Rda"); vars_T4_m50_rho05 <- varvals
 load("plots/vars_T4_N6_m10_rhoCD01_rhoUC01.Rda"); vars_T4_m10_rho01 <- varvals
 
+load("plots/vars_T4_N6_m50_rhoCD022_rhoUC019.Rda"); vars_T4_m50_ct <- varvals
+load("plots/vars_T8_N14_m50_rhoCD022_rhoUC019.Rda"); vars_T8_m50_ct <- varvals
+load("plots/vars_T4_N6_m150_rhoCD022_rhoUC019.Rda"); vars_T4_m150_ct <- varvals
+load("plots/vars_T8_N14_m150_rhoCD022_rhoUC019.Rda"); vars_T8_m150_ct <- varvals
+
 
 # Extract legend
 g_legend <- function(a.gplot){
@@ -278,3 +283,20 @@ title <- expression(paste("4 periods, 10 subjects/cluster-period, ", rho, "=0.01
 p1to2 <- make_1x2_multiplot(p1, p2, mylegend, title=title)
 ggsave("plots/vars_T4_m10_rho01.jpg", p1to2, width=9, height=4, units="in", dpi=600)
 ggsave("plots/vars_T4_m10_rho01.eps", p1to2, width=9, height=4, units="in", dpi=600)
+
+
+# Plot variances, continuous-time, continuous time parameterisation, all designs
+ylims <- c(0.0,0.02)
+p1 <- compare_designs(df.long=long_ct(vars_T4_m50_ct),
+                      ylabel="Variance", ylimits=ylims, Tp=4, m=50)
+p2 <- compare_designs(df.long=long_ct(vars_T4_m150_ct),
+                      ylabel="Variance", ylimits=ylims, Tp=4, m=150)
+p3 <- compare_designs(df.long=long_ct(vars_T8_m50_ct),
+                      ylabel="Variance", ylimits=ylims, Tp=8, m=50)
+p4 <- compare_designs(df.long=long_ct(vars_T8_m150_ct),
+                      ylabel="Variance", ylimits=ylims, Tp=8, m=150)
+mylegend <- g_legend(p1)
+title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(theta)[CCD])))
+p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
+ggsave("plots/conts_T4_8_m50_150_rho022_ct.jpg", p1to4, width=9, height=7, units="in", dpi=600)
+ggsave("plots/conts_T4_8_m50_150_rho022_ct.eps", p1to4, width=9, height=7, units="in", dpi=600)
