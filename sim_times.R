@@ -55,7 +55,7 @@ Vicontsim <- function(Tp, m, rho0, type="uniform"){
   return(Vi)
 }
 
-variances_sim <- function(rs, Tp, m, rho0, type="uniform"){
+variances_sim <- function(rs, Tp, N, m, rho0, type="uniform"){
   # Calculates the variance of the treatment effect estimator under the
   # continuous-time model at the individual level with unevenly-spaced
   # measurement times, with trial designs:
@@ -66,16 +66,16 @@ variances_sim <- function(rs, Tp, m, rho0, type="uniform"){
   Vs <- Vicontsim(Tp, m, rho0, type)
   varmats <- llply(rs, Vs) # Creates a list of covariance matrices for the values in rs
   scalefactor <- Tp/(Tp-1)
-  Xmats <- list(SWdesmat(Tp), crxodesmat(Tp), plleldesmat(Tp))
+  Xmats <- list(SWdesmat(Tp, N), crxodesmat(Tp, N), plleldesmat(Tp, N))
   ctres <- laply(varmats, vartheta_ind_vec, Xmat=Xmats, Toeplitz=FALSE)
   vals <- data.frame(decay = 1-rs,
                      SW = ctres[,1],
-                     crxo = scalefactor*ctres[,2],
-                     pllel = scalefactor*ctres[,3])
+                     crxo = ctres[,2],
+                     pllel = ctres[,3])
   return(vals)
 }
 
-sim_results <- function(nsims, rs, Tp, m, rho0, type="uniform"){
+sim_results <- function(nsims, rs, Tp, N, m, rho0, type="uniform"){
   # Calculates the variance of the treatment effect estimator under the model:
   #    - continuous time (ct)
   # using simulated arrival times, with trial designs:
@@ -85,10 +85,11 @@ sim_results <- function(nsims, rs, Tp, m, rho0, type="uniform"){
   # and returns the median, 2.5th and 97.5th percentiles of the
   # observed variances for each design
   
-  simvalslist <- replicate(nsims, variances_sim(rs, Tp, m, rho0, type), simplify=FALSE)
+  simvalslist <- replicate(nsims, variances_sim(rs, Tp, N, m, rho0, type), simplify=FALSE)
   # Save sim results
   rho0char <- strsplit(as.character(rho0),"\\.")[[1]][2]
-  save(simvalslist, file=paste0("plots/vars_nsims_", nsims, "_", type, "_T", Tp, "_m", m, "_rho", rho0char, ".Rda"))
+  save(simvalslist, file=paste0("plots/vars_nsims_", nsims, "_", type,
+                                "_T", Tp, "_N", N, "_m", m, "_rho", rho0char, ".Rda"))
   
   nrows <- length(rs)
   SWvals <- matrix(numeric(0), nrows, nsims)
@@ -114,15 +115,16 @@ sim_results <- function(nsims, rs, Tp, m, rho0, type="uniform"){
 
 ##
 Tp <- 4
+N <- 6
 m <- 50
 rho0 <- 0.023
 rho0char <- strsplit(as.character(rho0),"\\.")[[1]][2]
 
-simvals <- sim_results(nsims=1000, rs=seq(0.5, 1, 0.01), Tp=Tp, m=m, rho0=rho0, type="uniform")
-save(simvals, file=paste0("plots/vars_nsims_1000_summary_uniform_T", Tp, "_m", m, "_rho", rho0char, ".Rda"))
+simvals <- sim_results(nsims=1000, rs=seq(0.5, 1, 0.01), Tp=Tp, N=N, m=m, rho0=rho0, type="uniform")
+save(simvals, file=paste0("plots/vars_nsims_1000_summary_uniform_T", Tp, "_N", N, "_m", m, "_rho", rho0char, ".Rda"))
 
-simvalsexp <- sim_results(nsims=1000, rs=seq(0.5, 1, 0.01), Tp=Tp, m=m, rho0=rho0, type="exponential")
-save(simvalsexp, file=paste0("plots/vars_nsims_1000_summary_exponential_T", Tp, "_m", m, "_rho", rho0char, ".Rda"))
+simvalsexp <- sim_results(nsims=1000, rs=seq(0.5, 1, 0.01), Tp=Tp, N=N, m=m, rho0=rho0, type="exponential")
+save(simvalsexp, file=paste0("plots/vars_nsims_1000_summary_exponential_T", Tp, "_N", N, "_m", m, "_rho", rho0char, ".Rda"))
 
 # Extract legend
 g_legend <- function(a.gplot){
@@ -141,7 +143,7 @@ make_1x2_multiplot <- function(p1, p2, legend, title){
   return(p)
 }
 
-sim_results_plots <- function(simvals, Tp, m, rho0, title){
+sim_results_plots <- function(simvals, Tp, N, m, rho0_CD, rho0_UC, title){
   
   # Convert for plotting
   simvals_long <- simvals %>%
@@ -150,8 +152,9 @@ sim_results_plots <- function(simvals, Tp, m, rho0, title){
     spread(measure, Variance)
   
   # Obtain results under evenly-spaced assumption
-  rho0char <- strsplit(as.character(rho0),"\\.")[[1]][2]
-  load(paste0("plots/vars_T", Tp, "_m", m, "_rho", rho0char, ".Rda")); vars_assump <- varvals
+  rho0CDchar <- strsplit(as.character(rho0_CD),"\\.")[[1]][2]
+  rho0UCchar <- strsplit(as.character(rho0_UC),"\\.")[[1]][2]
+  load(paste0("plots/vars_T", Tp, "_N", N, "_m", m, "_rhoCD", rho0CDchar, "_rhoUC", rho0UCchar, ".Rda")); vars_assump <- varvals
   ctvarvals_long <- vars_assump %>%
     select(decay, starts_with('ct')) %>%
     gather(Design, Variance, -decay, convert=TRUE) %>%
@@ -180,12 +183,13 @@ sim_results_plots <- function(simvals, Tp, m, rho0, title){
           legend.position="bottom")
 }
 
-load('plots/vars_nsims_1000_summary_uniform_T4_m50_rho023.Rda'); simvals_unif <- simvals
-load('plots/vars_nsims_1000_summary_exponential_T4_m50_rho023.Rda'); simvals_exp <- simvalsexp
-p1 <- sim_results_plots(simvals_unif, Tp=4, m=50, rho0=0.023, title="Uniformly-distributed") + expand_limits(y=c(0,0.04))
-p2 <- sim_results_plots(simvals_exp, Tp=4, m=50, rho0=0.023, title="Exponentially-distributed") + expand_limits(y=c(0,0.04))
+load(paste0("plots/vars_nsims_1000_summary_uniform_T", Tp, "_N", N, "_m", m, "_rho", rho0char, ".Rda")); simvals_unif <- simvals
+load(paste0("plots/vars_nsims_1000_summary_exponential_T", Tp, "_N", N, "_m", m, "_rho", rho0char, ".Rda")); simvals_exp <- simvalsexp
+rho0UC <- 0.019
+p1 <- sim_results_plots(simvals_unif, Tp=Tp, N=N, m=m, rho0_CD=rho0, rho0_UC=rho0UC, title="Uniformly-distributed") + expand_limits(y=c(0,0.02))
+p2 <- sim_results_plots(simvals_exp, Tp=Tp, N=N, m=m, rho0_CD=rho0, rho0_UC=rho0UC, title="Exponentially-distributed") + expand_limits(y=c(0,0.02))
 mylegend <- g_legend(p1)
 title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(theta)[CCD]), ", unevenly-spaced times"))
 p1to2 <- make_1x2_multiplot(p1, p2, mylegend, title=title)
-ggsave(paste0("plots/conts_sim_unif_exp_compare_T4_m50_rho023.jpg"), p1to2, width=9, height=4, units="in", dpi=600)
-ggsave(paste0("plots/conts_sim_unif_exp_compare_T4_m50_rho023.eps"), p1to2, width=9, height=4, units="in", dpi=600)
+ggsave(paste0("plots/conts_sim_unif_exp_compare_T", Tp, "_N", N, "_m", m, "_rho", rho0char, ".jpg"), p1to2, width=9, height=4, units="in", dpi=600)
+ggsave(paste0("plots/conts_sim_unif_exp_compare_T", Tp, "_N", N, "_m", m, "_rho", rho0char, ".eps"), p1to2, width=9, height=4, units="in", dpi=600)
