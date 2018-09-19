@@ -256,3 +256,9 @@ generate_var_results  <- function(Tp, N, m, rho0_CD, rho0_UC) {
   save(varvals, file=paste0("plots/vars_T", Tp, "_N", N, "_m", m, "_rhoCD", rho0CDchar, "_rhoUC", rho0UCchar, ".Rda"))
   return(varvals)
 }
+
+pow <- function(effsize, siglevel=0.05, var){
+  z <- qnorm(siglevel/2)
+  pow <- z + sqrt(1/var)*effsize
+  return(pow)
+}
