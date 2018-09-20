@@ -132,6 +132,13 @@ long_rel_dt_ct <- function(df){
   return(ctvdtvarvals_long)
 }
 
+# Calculate power for a set of variances and a given effect size and sig level
+powdf <- function(df, effsize, siglevel=0.05){
+  powvals <- apply(df[-df$decay], MARGIN=2, pow, effsize, siglevel)
+  powdf <- data.frame(decay=df$decay, powvals)
+  return(powdf)
+}
+
 
 # Plot variances, continuous-time, all designs
 ylims <- c(0.0,0.02)
@@ -300,3 +307,79 @@ title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(th
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave("plots/conts_T4_8_m50_150_rho022_ct.jpg", p1to4, width=9, height=7, units="in", dpi=600)
 ggsave("plots/conts_T4_8_m50_150_rho022_ct.eps", p1to4, width=9, height=7, units="in", dpi=600)
+
+# Power plots
+effsize <- 0.2
+siglevel <- 0.05
+pow_T4_m50 <- powdf(vars_T4_m50, effsize, siglevel)
+pow_T4_m150 <- powdf(vars_T4_m150, effsize, siglevel)
+pow_T8_m50 <- powdf(vars_T8_m50, effsize, siglevel)
+pow_T8_m150 <- powdf(vars_T8_m150, effsize, siglevel)
+
+# Power, continuous-time, all designs
+ylims <- c(0,1)
+p1 <- compare_designs(df.long=long_ct(pow_T4_m50),
+                      ylabel="Power", ylimits=ylims, Tp=4, m=50) + geom_hline(aes(yintercept=1))
+p2 <- compare_designs(df.long=long_ct(pow_T4_m150),
+                      ylabel="Power", ylimits=ylims, Tp=4, m=150) + geom_hline(aes(yintercept=1))
+p3 <- compare_designs(df.long=long_ct(pow_T8_m50),
+                      ylabel="Power", ylimits=c(0.5,1), Tp=8, m=50) + geom_hline(aes(yintercept=1))
+p4 <- compare_designs(df.long=long_ct(pow_T8_m150),
+                      ylabel="Power", ylimits=c(0.5,1), Tp=8, m=150) + geom_hline(aes(yintercept=1))
+mylegend <- g_legend(p1)
+title <- paste0('Power to detect effect size of ', effsize, ', CCD')
+p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
+ggsave("plots/power_conts_T4_8_m50_150_rho023.jpg", p1to4, width=9, height=7, units="in", dpi=600)
+
+
+# Relative power, UC vs CCD
+ylims <- c(0.5,2.0)
+
+p1 <- compare_designs(df.long=long_rel_HH_ct(pow_T4_m50),
+                      ylabel="Relative power", ylimits=ylims, Tp=4, m=50) +
+  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.2,0.5,1.0,2.0,5.0))
+p2 <- compare_designs(df.long=long_rel_HH_ct(pow_T4_m150),
+                      ylabel="Relative power", ylimits=ylims, Tp=4, m=150) +
+  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.2,0.5,1.0,2.0,5.0))
+p3 <- compare_designs(df.long=long_rel_HH_ct(pow_T8_m50),
+                      ylabel="Relative variance", ylimits=ylims, Tp=8, m=50) +
+  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.2,0.5,1.0,2.0,5.0))
+p4 <- compare_designs(df.long=long_rel_HH_ct(pow_T8_m150),
+                      ylabel="Relative variance", ylimits=ylims, Tp=8, m=150) +
+  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.2,0.5,1.0,2.0,5.0))
+mylegend <- g_legend(p1)
+title <- paste0('Relative power to detect effect size of ', effsize, ', UC vs CCD')
+p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
+ggsave("plots/power_HH_vs_conts_50_150_rhoCD023_rhoUC019.jpg", p1to4, width=9, height=7, units="in", dpi=600)
+
+# Relative power, CCD vs UC
+
+# Convert continuous-time vs HH results to long format
+long_rel_ct_HH <- function(df){
+  ctvHHvarvals <- df %>%
+    mutate(ratioSW=ctSW/HHSW, ratiocrxo=ctcrxo/HHcrxo,
+           ratiopllel=ctpllel/HHpllel) %>%
+    select(decay, starts_with('ratio'))
+  ctvHHvarvals_long <- gather(data=ctvHHvarvals, key=Design, value=relative_power,
+                              ratioSW:ratiopllel, convert=TRUE)
+  return(ctvHHvarvals_long)
+}
+
+ylims <- c(0.5,2.0)
+
+p1 <- compare_designs(df.long=long_rel_ct_HH(pow_T4_m50),
+                      ylabel="Relative power", ylimits=ylims, Tp=4, m=50) +
+  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.2,0.5,1.0,2.0,5.0))
+p2 <- compare_designs(df.long=long_rel_ct_HH(pow_T4_m150),
+                      ylabel="Relative power", ylimits=ylims, Tp=4, m=150) +
+  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.2,0.5,1.0,2.0,5.0))
+p3 <- compare_designs(df.long=long_rel_ct_HH(pow_T8_m50),
+                      ylabel="Relative power", ylimits=ylims, Tp=8, m=50) +
+  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.2,0.5,1.0,2.0,5.0))
+p4 <- compare_designs(df.long=long_rel_ct_HH(pow_T8_m150),
+                      ylabel="Relative power", ylimits=ylims, Tp=8, m=150) +
+  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.2,0.5,1.0,2.0,5.0))
+mylegend <- g_legend(p1)
+title <- paste0('Relative power to detect effect size of ', effsize, ', CCD vs UC')
+p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
+ggsave("plots/power_conts_vs_HH_50_150_rhoCD023_rhoUC019.jpg", p1to4, width=9, height=7, units="in", dpi=600)

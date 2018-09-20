@@ -257,8 +257,8 @@ generate_var_results  <- function(Tp, N, m, rho0_CD, rho0_UC) {
   return(varvals)
 }
 
-pow <- function(effsize, siglevel=0.05, var){
+pow <- function(vars, effsize, siglevel=0.05){
   z <- qnorm(siglevel/2)
-  pow <- z + sqrt(1/var)*effsize
+  pow <- pnorm(z + sqrt(1/vars)*effsize)
   return(pow)
 }
