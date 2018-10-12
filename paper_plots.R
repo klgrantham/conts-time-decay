@@ -12,23 +12,23 @@ library(grid)
 source('vartheta_twolevels.R')
 
 # Load results for different trial configurations
-load("plots/vars_T4_N6_m50_rhoCD023_rhoUC019.Rda"); vars_T4_m50 <- varvals
-load("plots/vars_T8_N14_m50_rhoCD023_rhoUC019.Rda"); vars_T8_m50 <- varvals
-load("plots/vars_T4_N6_m150_rhoCD023_rhoUC019.Rda"); vars_T4_m150 <- varvals
-load("plots/vars_T8_N14_m150_rhoCD023_rhoUC019.Rda"); vars_T8_m150 <- varvals
+load("plots/vars_T4_N6_m50_rhoCD023_rhoUC.Rda"); vars_T4_m50 <- varvals
+load("plots/vars_T8_N14_m50_rhoCD023_rhoUC.Rda"); vars_T8_m50 <- varvals
+load("plots/vars_T4_N6_m150_rhoCD023_rhoUC.Rda"); vars_T4_m150 <- varvals
+load("plots/vars_T8_N14_m150_rhoCD023_rhoUC.Rda"); vars_T8_m150 <- varvals
 
 load("plots/vars_ct_mean_T4_N6_m50_rho023.Rda"); vars_ct_mean_T4_m50 <- varvals
 load("plots/vars_ct_mean_T8_N14_m50_rho023.Rda"); vars_ct_mean_T8_m50 <- varvals
 load("plots/vars_ct_mean_T4_N6_m150_rho023.Rda"); vars_ct_mean_T4_m150 <- varvals
 load("plots/vars_ct_mean_T8_N14_m150_rho023.Rda"); vars_ct_mean_T8_m150 <- varvals
 
-load("plots/vars_T4_N6_m50_rhoCD05_rhoUC05.Rda"); vars_T4_m50_rho05 <- varvals
-load("plots/vars_T4_N6_m10_rhoCD01_rhoUC01.Rda"); vars_T4_m10_rho01 <- varvals
+load("plots/vars_T4_N6_m50_rhoCD05_rhoUC.Rda"); vars_T4_m50_rho05 <- varvals
+load("plots/vars_T4_N6_m10_rhoCD01_rhoUC.Rda"); vars_T4_m10_rho01 <- varvals
 
-load("plots/vars_T4_N6_m50_rhoCD022_rhoUC019.Rda"); vars_T4_m50_ct <- varvals
-load("plots/vars_T8_N14_m50_rhoCD022_rhoUC019.Rda"); vars_T8_m50_ct <- varvals
-load("plots/vars_T4_N6_m150_rhoCD022_rhoUC019.Rda"); vars_T4_m150_ct <- varvals
-load("plots/vars_T8_N14_m150_rhoCD022_rhoUC019.Rda"); vars_T8_m150_ct <- varvals
+load("plots/vars_T4_N6_m50_rhoCD022_rhoUC.Rda"); vars_T4_m50_ct <- varvals
+load("plots/vars_T8_N14_m50_rhoCD022_rhoUC.Rda"); vars_T8_m50_ct <- varvals
+load("plots/vars_T4_N6_m150_rhoCD022_rhoUC.Rda"); vars_T4_m150_ct <- varvals
+load("plots/vars_T8_N14_m150_rhoCD022_rhoUC.Rda"); vars_T8_m150_ct <- varvals
 
 
 # Extract legend
@@ -174,8 +174,8 @@ mylegend <- g_legend(p1)
 title <- expression(paste("Relative variance of treatment effect estimators, ",
                           Var(hat(theta)[UC])/Var(hat(theta)[CCD])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
-ggsave("plots/HH_vs_conts_50_150_rhoCD023_rhoUC019.jpg", p1to4, width=9, height=7, units="in", dpi=600)
-ggsave("plots/HH_vs_conts_50_150_rhoCD023_rhoUC019.eps", p1to4, width=9, height=7, units="in", dpi=600)
+ggsave("plots/HH_vs_conts_50_150_rhoCD023_rhoUC.jpg", p1to4, width=9, height=7, units="in", dpi=600)
+ggsave("plots/HH_vs_conts_50_150_rhoCD023_rhoUC.eps", p1to4, width=9, height=7, units="in", dpi=600)
 
 # Plot relative variance, discrete vs continuous, all designs
 ylims <- c(0.8,2.0)
@@ -350,7 +350,7 @@ p4 <- compare_designs(df.long=long_rel_HH_ct(pow_T8_m150),
 mylegend <- g_legend(p1)
 title <- paste0('Relative power to detect effect size of ', effsize, ', UC vs CCD')
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
-ggsave("plots/power_HH_vs_conts_50_150_rhoCD023_rhoUC019.jpg", p1to4, width=9, height=7, units="in", dpi=600)
+ggsave("plots/power_HH_vs_conts_50_150_rhoCD023_rhoUC.jpg", p1to4, width=9, height=7, units="in", dpi=600)
 
 # Relative power, CCD vs UC
 
@@ -382,4 +382,4 @@ p4 <- compare_designs(df.long=long_rel_ct_HH(pow_T8_m150),
 mylegend <- g_legend(p1)
 title <- paste0('Relative power to detect effect size of ', effsize, ', CCD vs UC')
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
-ggsave("plots/power_conts_vs_HH_50_150_rhoCD023_rhoUC019.jpg", p1to4, width=9, height=7, units="in", dpi=600)
+ggsave("plots/power_conts_vs_HH_50_150_rhoCD023_rhoUC.jpg", p1to4, width=9, height=7, units="in", dpi=600)

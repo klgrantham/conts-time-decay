@@ -64,7 +64,7 @@ vartheta <- function(Xmat, Vi_inv) {
 # Variance matrices under different models
 # Uniform correlation (Hussey & Hughes), discrete time decay, continuous time decay
 
-HHVi <- function(Tp, m, rho0, meanlvl=TRUE){
+HHVi <- function(rho0, Tp, m, meanlvl=TRUE){
   # Constructs the covariance matrix for a single cluster, Vi, under the
   # Hussey & Hughes model (2007), at either the cluster mean level or
   # at the individual level
@@ -207,7 +207,7 @@ var_ct_mean_results <- function(Tp, N, m, rho0){
 }
 
 # Generate main variance results
-generate_var_results  <- function(Tp, N, m, rho0_CD, rho0_UC) {
+generate_var_results  <- function(Tp, N, m, rho0_CD) {
   # Calculates the variance of the treatment effect estimator under the models:
   #    continuous time (ct), discrete time (dt), Hussey & Hughes (HH)
   # with trial designs:
@@ -230,7 +230,10 @@ generate_var_results  <- function(Tp, N, m, rho0_CD, rho0_UC) {
   # Specify the covariance matrices under the different models
   ctvarmat <- llply(rs, expdecayVicont, Tp, m, rho0_CD, meanlvl=FALSE)
   dtvarmat <- llply(rs, expdecayVi, Tp, m, rho0_CD, meanlvl=TRUE)
-  HHvarmat <- HHVi(Tp, m, rho0_UC, meanlvl=TRUE)
+  
+  # Calculate expected value of rho0_UC
+  rho0_UC <- laply(ctvarmat, ErhoUC, Tp, m, rho0_CD, N)
+  HHvarmat <- llply(rho0_UC, HHVi, Tp, m, meanlvl=TRUE)
 
   # Get the variances of the treatment effect estimator under the
   # different models and designs
@@ -240,20 +243,20 @@ generate_var_results  <- function(Tp, N, m, rho0_CD, rho0_UC) {
   Xmats <- list(SWXmat, crxoXmat, pllelXmat)
   ctres <- laply(ctvarmat, vartheta_ind_vec, Xmat=Xmats)
   varvals <- data.frame(decay=1-rs,
+                        rhoUC = rho0_UC,
                         ctSW = ctres[,1],
                         ctcrxo = ctres[,2],
                         ctpllel = ctres[,3],
                         dtSW = laply(dtvarmat, vartheta_mean, Xmat=SWXmat),
                         dtcrxo = laply(dtvarmat, vartheta_mean, Xmat=crxoXmat),
                         dtpllel = laply(dtvarmat, vartheta_mean, Xmat=pllelXmat),
-                        HHSW = vartheta_mean(Vi=HHvarmat, Xmat=SWXmat),
-                        HHcrxo = vartheta_mean(Vi=HHvarmat, Xmat=crxoXmat),
-                        HHpllel = vartheta_mean(Vi=HHvarmat, Xmat=pllelXmat))
+                        HHSW = laply(HHvarmat, vartheta_mean, Xmat=SWXmat),
+                        HHcrxo = laply(HHvarmat, vartheta_mean, Xmat=crxoXmat),
+                        HHpllel = laply(HHvarmat, vartheta_mean, Xmat=pllelXmat))
 
   # Save results to R data file
   rho0CDchar <- strsplit(as.character(rho0_CD),"\\.")[[1]][2] # get numbers after decimal point
-  rho0UCchar <- strsplit(as.character(rho0_UC),"\\.")[[1]][2]
-  save(varvals, file=paste0("plots/vars_T", Tp, "_N", N, "_m", m, "_rhoCD", rho0CDchar, "_rhoUC", rho0UCchar, ".Rda"))
+  save(varvals, file=paste0("plots/vars_T", Tp, "_N", N, "_m", m, "_rhoCD", rho0CDchar, "_rhoUC", ".Rda"))
   return(varvals)
 }
 
@@ -263,13 +266,12 @@ pow <- function(vars, effsize, siglevel=0.05){
   return(pow)
 }
 
-ErhoUC <- function(rho0_CCD, V, Tp, N, m){
-  sig2E <- 1 - rho0_CCD
-  Vc <- V - diag(sig2E, Tp*m)
-  quadsum <- sum(Vc)
-  dblsum <- sum(Vc[1:m,1:m])
-  Esig2CP <- (1/(N*Tp*m-N-Tp+1))*(((N*m-1)/(Tp*m^2))*quadsum + (1/m^2)*dblsum - N*rho0_CCD)
-  Esig2E <- sig2E + (1/(N*Tp*m-N-T+1))*(N*Tp*m*rho0_CCD - ((N-1)/(Tp*m))*quadsum - (Tp/m)*dblsum)
+ErhoUC <- function(V, Tp, m, rho0_CD, N){
+  sig2E <- 1 - rho0_CD
+  quadsum <- sum(V) - Tp*m*sig2E
+  dblsum <- sum(V[1:m,1:m]) - m*sig2E
+  Esig2CP <- (1/(N*Tp*m-N-Tp+1))*(((N*m-1)/(Tp*m^2))*quadsum + (1/m^2)*dblsum - N*rho0_CD)
+  Esig2E <- sig2E + (1/(N*Tp*m-N-T+1))*(N*Tp*m*rho0_CD - ((N-1)/(Tp*m))*quadsum - (Tp/m)*dblsum)
   ErhoUC <- Esig2CP/(Esig2CP + Esig2E)
-  return(list(Esig2Cp=Esig2CP, Esig2E=Esig2E, ErhoUC=ErhoUC))
+  return(ErhoUC)
 }
