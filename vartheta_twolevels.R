@@ -262,3 +262,14 @@ pow <- function(vars, effsize, siglevel=0.05){
   pow <- pnorm(z + sqrt(1/vars)*effsize)
   return(pow)
 }
+
+ErhoUC <- function(rho0_CCD, V, Tp, N, m){
+  sig2E <- 1 - rho0_CCD
+  Vc <- V - diag(sig2E, Tp*m)
+  quadsum <- sum(Vc)
+  dblsum <- sum(Vc[1:m,1:m])
+  Esig2CP <- (1/(N*Tp*m-N-Tp+1))*(((N*m-1)/(Tp*m^2))*quadsum + (1/m^2)*dblsum - N*rho0_CCD)
+  Esig2E <- sig2E + (1/(N*Tp*m-N-T+1))*(N*Tp*m*rho0_CCD - ((N-1)/(Tp*m))*quadsum - (Tp/m)*dblsum)
+  ErhoUC <- Esig2CP/(Esig2CP + Esig2E)
+  return(list(Esig2Cp=Esig2CP, Esig2E=Esig2E, ErhoUC=ErhoUC))
+}
