@@ -283,8 +283,8 @@ p1 <- compare_designs_1by2(df.long=long_ct(vars_T4_m10_rho01),
                            ylabel="Variance", ylimits=c(0.0,0.05), title=p1title)
 p2title <- expression(paste("Relative variance, ", Var(hat(theta)[UC])/Var(hat(theta)[CCD])))
 p2 <- compare_designs_1by2(df.long=long_rel_HH_ct(vars_T4_m10_rho01),
-                           ylabel="Relative variance", ylimits=c(0.8,1.2), title=p2title) +
-  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.8,1.0,1.2))
+                           ylabel="Relative variance", ylimits=c(0.9,1.1), title=p2title) +
+  geom_hline(aes(yintercept=1)) + scale_y_continuous(breaks=c(0.9,1.0,1.1))
 mylegend <- g_legend(p1)
 title <- expression(paste("4 periods, 10 subjects/cluster-period, ", rho, "=0.01"))
 p1to2 <- make_1x2_multiplot(p1, p2, mylegend, title=title)
