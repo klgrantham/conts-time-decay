@@ -143,7 +143,7 @@ make_1x2_multiplot <- function(p1, p2, legend, title){
   return(p)
 }
 
-sim_results_plots <- function(simvals, Tp, N, m, rho0_CD, rho0_UC, title){
+sim_results_plots <- function(simvals, Tp, N, m, rho0_CD, title){
   
   # Convert for plotting
   simvals_long <- simvals %>%
@@ -153,8 +153,7 @@ sim_results_plots <- function(simvals, Tp, N, m, rho0_CD, rho0_UC, title){
   
   # Obtain results under evenly-spaced assumption
   rho0CDchar <- strsplit(as.character(rho0_CD),"\\.")[[1]][2]
-  rho0UCchar <- strsplit(as.character(rho0_UC),"\\.")[[1]][2]
-  load(paste0("plots/vars_T", Tp, "_N", N, "_m", m, "_rhoCD", rho0CDchar, "_rhoUC", rho0UCchar, ".Rda")); vars_assump <- varvals
+  load(paste0("plots/vars_T", Tp, "_N", N, "_m", m, "_rhoCD", rho0CDchar, "_rhoUC.Rda")); vars_assump <- varvals
   ctvarvals_long <- vars_assump %>%
     select(decay, starts_with('ct')) %>%
     gather(Design, Variance, -decay, convert=TRUE) %>%
@@ -185,11 +184,10 @@ sim_results_plots <- function(simvals, Tp, N, m, rho0_CD, rho0_UC, title){
 
 load(paste0("plots/vars_nsims_1000_summary_uniform_T", Tp, "_N", N, "_m", m, "_rho", rho0char, ".Rda")); simvals_unif <- simvals
 load(paste0("plots/vars_nsims_1000_summary_exponential_T", Tp, "_N", N, "_m", m, "_rho", rho0char, ".Rda")); simvals_exp <- simvalsexp
-rho0UC <- 0.019
-p1 <- sim_results_plots(simvals_unif, Tp=Tp, N=N, m=m, rho0_CD=rho0, rho0_UC=rho0UC, title="Uniformly-distributed") + expand_limits(y=c(0,0.02))
-p2 <- sim_results_plots(simvals_exp, Tp=Tp, N=N, m=m, rho0_CD=rho0, rho0_UC=rho0UC, title="Exponentially-distributed") + expand_limits(y=c(0,0.02))
+p1 <- sim_results_plots(simvals_unif, Tp=Tp, N=N, m=m, rho0_CD=rho0, title="Uniformly-distributed") + expand_limits(y=c(0,0.02))
+p2 <- sim_results_plots(simvals_exp, Tp=Tp, N=N, m=m, rho0_CD=rho0, title="Exponentially-distributed") + expand_limits(y=c(0,0.02))
 mylegend <- g_legend(p1)
 title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(theta)[CCD]), ", unevenly-spaced times"))
 p1to2 <- make_1x2_multiplot(p1, p2, mylegend, title=title)
 ggsave(paste0("plots/conts_sim_unif_exp_compare_T", Tp, "_N", N, "_m", m, "_rho", rho0char, ".jpg"), p1to2, width=9, height=4, units="in", dpi=600)
-ggsave(paste0("plots/conts_sim_unif_exp_compare_T", Tp, "_N", N, "_m", m, "_rho", rho0char, ".eps"), p1to2, width=9, height=4, units="in", dpi=600)
+ggsave(paste0("plots/conts_sim_unif_exp_compare_T", Tp, "_N", N, "_m", m, "_rho", rho0char, ".pdf"), p1to2, width=9, height=4, units="in", dpi=600)
