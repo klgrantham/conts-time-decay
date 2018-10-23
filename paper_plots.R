@@ -154,7 +154,7 @@ mylegend <- g_legend(p1)
 title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(theta)[CCD])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave("plots/conts_T4_8_m50_150_rho023.jpg", p1to4, width=9, height=7, units="in", dpi=600)
-ggsave("plots/conts_T4_8_m50_150_rho023.eps", p1to4, width=9, height=7, units="in", dpi=600)
+ggsave("plots/conts_T4_8_m50_150_rho023.pdf", p1to4, width=9, height=7, units="in", dpi=600)
 
 # Plot relative variance, HH vs continuous, all designs
 ylims <- c(0.2,5.0)
@@ -175,7 +175,7 @@ title <- expression(paste("Relative variance of treatment effect estimators, ",
                           Var(hat(theta)[UC])/Var(hat(theta)[CCD])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave("plots/HH_vs_conts_50_150_rhoCD023_rhoUC.jpg", p1to4, width=9, height=7, units="in", dpi=600)
-ggsave("plots/HH_vs_conts_50_150_rhoCD023_rhoUC.eps", p1to4, width=9, height=7, units="in", dpi=600)
+ggsave("plots/HH_vs_conts_50_150_rhoCD023_rhoUC.pdf", p1to4, width=9, height=7, units="in", dpi=600)
 
 # Plot relative variance, discrete vs continuous, all designs
 ylims <- c(0.8,2.0)
@@ -196,7 +196,7 @@ title <- expression(paste("Relative variance of treatment effect estimators, ",
                           Var(hat(theta)[DCD])/Var(hat(theta)[CCD])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave("plots/dt_vs_conts_50_150_rho023.jpg", p1to4, width=9, height=7, units="in", dpi=600)
-ggsave("plots/dt_vs_conts_50_150_rho023.eps", p1to4, width=9, height=7, units="in", dpi=600)
+ggsave("plots/dt_vs_conts_50_150_rho023.pdf", p1to4, width=9, height=7, units="in", dpi=600)
 
 # Plot relative variance, continuous, mean vs individual level, all designs
 vars_ind_mean_T4_m50 <- data.frame(long_ct(vars_T4_m50),
@@ -238,7 +238,7 @@ title <- expression(paste("Relative variance of treatment effect estimators, ",
                           Var(hat(theta)[CCD][mean])/Var(hat(theta)[CCD][ind])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave("plots/conts_meanvsind_ratio_50_150_rho023.jpg", p1to4, width=9, height=7, units="in", dpi=600)
-ggsave("plots/conts_meanvsind_ratio_50_150_rho023.eps", p1to4, width=9, height=7, units="in", dpi=600)
+ggsave("plots/conts_meanvsind_ratio_50_150_rho023.pdf", p1to4, width=9, height=7, units="in", dpi=600)
 
 # Plot variance and relative variance, continuous, different rho0 values
 
@@ -275,7 +275,7 @@ mylegend <- g_legend(p1)
 title <- expression(paste("4 periods, 50 subjects/cluster-period, ", rho, "=0.05"))
 p1to2 <- make_1x2_multiplot(p1, p2, mylegend, title=title)
 ggsave("plots/vars_T4_m50_rho05.jpg", p1to2, width=9, height=4, units="in", dpi=600)
-ggsave("plots/vars_T4_m50_rho05.eps", p1to2, width=9, height=4, units="in", dpi=600)
+ggsave("plots/vars_T4_m50_rho05.pdf", p1to2, width=9, height=4, units="in", dpi=600)
 
 # Tp=4, m=10, rho0=0.01
 p1title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(theta)[CCD])))
@@ -283,13 +283,13 @@ p1 <- compare_designs_1by2(df.long=long_ct(vars_T4_m10_rho01),
                            ylabel="Variance", ylimits=c(0.0,0.05), title=p1title)
 p2title <- expression(paste("Relative variance, ", Var(hat(theta)[UC])/Var(hat(theta)[CCD])))
 p2 <- compare_designs_1by2(df.long=long_rel_HH_ct(vars_T4_m10_rho01),
-                           ylabel="Relative variance", ylimits=c(0.5,2.0), title=p2title) +
-  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.5,1.0,2.0))
+                           ylabel="Relative variance", ylimits=c(0.8,1.2), title=p2title) +
+  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.8,1.0,1.2))
 mylegend <- g_legend(p1)
 title <- expression(paste("4 periods, 10 subjects/cluster-period, ", rho, "=0.01"))
 p1to2 <- make_1x2_multiplot(p1, p2, mylegend, title=title)
 ggsave("plots/vars_T4_m10_rho01.jpg", p1to2, width=9, height=4, units="in", dpi=600)
-ggsave("plots/vars_T4_m10_rho01.eps", p1to2, width=9, height=4, units="in", dpi=600)
+ggsave("plots/vars_T4_m10_rho01.pdf", p1to2, width=9, height=4, units="in", dpi=600)
 
 
 # Plot variances, continuous-time, continuous time parameterisation, all designs
@@ -306,7 +306,7 @@ mylegend <- g_legend(p1)
 title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(theta)[CCD])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave("plots/conts_T4_8_m50_150_rho022_ct.jpg", p1to4, width=9, height=7, units="in", dpi=600)
-ggsave("plots/conts_T4_8_m50_150_rho022_ct.eps", p1to4, width=9, height=7, units="in", dpi=600)
+ggsave("plots/conts_T4_8_m50_150_rho022_ct.pdf", p1to4, width=9, height=7, units="in", dpi=600)
 
 # Power plots
 effsize <- 0.2
@@ -330,56 +330,4 @@ mylegend <- g_legend(p1)
 title <- paste0('Power to detect effect size of ', effsize, ', CCD')
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
 ggsave("plots/power_conts_T4_8_m50_150_rho023.jpg", p1to4, width=9, height=7, units="in", dpi=600)
-
-
-# Relative power, UC vs CCD
-ylims <- c(0.5,2.0)
-
-p1 <- compare_designs(df.long=long_rel_HH_ct(pow_T4_m50),
-                      ylabel="Relative power", ylimits=ylims, Tp=4, m=50) +
-  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.2,0.5,1.0,2.0,5.0))
-p2 <- compare_designs(df.long=long_rel_HH_ct(pow_T4_m150),
-                      ylabel="Relative power", ylimits=ylims, Tp=4, m=150) +
-  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.2,0.5,1.0,2.0,5.0))
-p3 <- compare_designs(df.long=long_rel_HH_ct(pow_T8_m50),
-                      ylabel="Relative variance", ylimits=ylims, Tp=8, m=50) +
-  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.2,0.5,1.0,2.0,5.0))
-p4 <- compare_designs(df.long=long_rel_HH_ct(pow_T8_m150),
-                      ylabel="Relative variance", ylimits=ylims, Tp=8, m=150) +
-  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.2,0.5,1.0,2.0,5.0))
-mylegend <- g_legend(p1)
-title <- paste0('Relative power to detect effect size of ', effsize, ', UC vs CCD')
-p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
-ggsave("plots/power_HH_vs_conts_50_150_rhoCD023_rhoUC.jpg", p1to4, width=9, height=7, units="in", dpi=600)
-
-# Relative power, CCD vs UC
-
-# Convert continuous-time vs HH results to long format
-long_rel_ct_HH <- function(df){
-  ctvHHvarvals <- df %>%
-    mutate(ratioSW=ctSW/HHSW, ratiocrxo=ctcrxo/HHcrxo,
-           ratiopllel=ctpllel/HHpllel) %>%
-    select(decay, starts_with('ratio'))
-  ctvHHvarvals_long <- gather(data=ctvHHvarvals, key=Design, value=relative_power,
-                              ratioSW:ratiopllel, convert=TRUE)
-  return(ctvHHvarvals_long)
-}
-
-ylims <- c(0.5,2.0)
-
-p1 <- compare_designs(df.long=long_rel_ct_HH(pow_T4_m50),
-                      ylabel="Relative power", ylimits=ylims, Tp=4, m=50) +
-  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.2,0.5,1.0,2.0,5.0))
-p2 <- compare_designs(df.long=long_rel_ct_HH(pow_T4_m150),
-                      ylabel="Relative power", ylimits=ylims, Tp=4, m=150) +
-  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.2,0.5,1.0,2.0,5.0))
-p3 <- compare_designs(df.long=long_rel_ct_HH(pow_T8_m50),
-                      ylabel="Relative power", ylimits=ylims, Tp=8, m=50) +
-  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.2,0.5,1.0,2.0,5.0))
-p4 <- compare_designs(df.long=long_rel_ct_HH(pow_T8_m150),
-                      ylabel="Relative power", ylimits=ylims, Tp=8, m=150) +
-  geom_hline(aes(yintercept=1)) + scale_y_log10(breaks=c(0.2,0.5,1.0,2.0,5.0))
-mylegend <- g_legend(p1)
-title <- paste0('Relative power to detect effect size of ', effsize, ', CCD vs UC')
-p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
-ggsave("plots/power_conts_vs_HH_50_150_rhoCD023_rhoUC.jpg", p1to4, width=9, height=7, units="in", dpi=600)
+ggsave("plots/power_conts_T4_8_m50_150_rho023.pdf", p1to4, width=9, height=7, units="in", dpi=600)
