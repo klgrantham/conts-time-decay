@@ -319,13 +319,17 @@ pow_T8_m150 <- powdf(vars_T8_m150, effsize, siglevel)
 # Power, continuous-time, all designs
 ylims <- c(0,1)
 p1 <- compare_designs(df.long=long_ct(pow_T4_m50),
-                      ylabel="Power", ylimits=ylims, Tp=4, m=50) + geom_hline(aes(yintercept=1))
+                      ylabel="Power", ylimits=ylims, Tp=4, m=50) + geom_hline(aes(yintercept=1)) +
+        scale_y_continuous(breaks=c(0,0.2,0.4,0.6,0.8,1))
 p2 <- compare_designs(df.long=long_ct(pow_T4_m150),
-                      ylabel="Power", ylimits=ylims, Tp=4, m=150) + geom_hline(aes(yintercept=1))
+                      ylabel="Power", ylimits=ylims, Tp=4, m=150) + geom_hline(aes(yintercept=1)) +
+        scale_y_continuous(breaks=c(0,0.2,0.4,0.6,0.8,1))
 p3 <- compare_designs(df.long=long_ct(pow_T8_m50),
-                      ylabel="Power", ylimits=c(0.5,1), Tp=8, m=50) + geom_hline(aes(yintercept=1))
+                      ylabel="Power", ylimits=c(0.5,1), Tp=8, m=50) + geom_hline(aes(yintercept=1)) +
+        scale_y_continuous(breaks=c(0,0.2,0.4,0.6,0.8,1))
 p4 <- compare_designs(df.long=long_ct(pow_T8_m150),
-                      ylabel="Power", ylimits=c(0.5,1), Tp=8, m=150) + geom_hline(aes(yintercept=1))
+                      ylabel="Power", ylimits=c(0.5,1), Tp=8, m=150) + geom_hline(aes(yintercept=1)) +
+        scale_y_continuous(breaks=c(0,0.2,0.4,0.6,0.8,1))
 mylegend <- g_legend(p1)
 title <- paste0('Power to detect effect size of ', effsize, ', CCD')
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
