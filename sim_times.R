@@ -165,10 +165,11 @@ sim_results_plots <- function(simvals, Tp, N, m, rho0_CD, title){
   p <- ggplot(data=varvals, aes(x=decay, colour=Design, linetype=Design)) +
     geom_line(aes(y=median), size=1.0) +
     geom_line(aes(y=Variance), size=0.5, colour="black", show.legend=FALSE) +
-    geom_ribbon(aes(ymin=lower, ymax=upper, fill=Design), alpha=0.3, show.legend=FALSE, colour=NA) +
+    geom_ribbon(aes(ymin=lower, ymax=upper, fill=Design), show.legend=FALSE, colour=NA) +
     expand_limits(y=0) +
     scale_color_manual(values = c("#F8766D", "#00BA38", "#619CFF"),
                        labels = c("CRXO", "Parallel", "SW")) +
+    scale_fill_manual(values = c("#F8766D4D", "#00BA384D", "#619CFF4D")) +
     scale_linetype_manual(values = c("twodash", "dashed", "solid"),
                           labels = c("CRXO", "Parallel", "SW")) +
     xlab("Decay (1 - r)") +
@@ -189,5 +190,6 @@ p2 <- sim_results_plots(simvals_exp, Tp=Tp, N=N, m=m, rho0_CD=rho0, title="Expon
 mylegend <- g_legend(p1)
 title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(theta)[CCD]), ", unevenly-spaced times"))
 p1to2 <- make_1x2_multiplot(p1, p2, mylegend, title=title)
-ggsave(paste0("plots/conts_sim_unif_exp_compare_T", Tp, "_N", N, "_m", m, "_rho", rho0char, ".jpg"), p1to2, width=9, height=4, units="in", dpi=600)
-ggsave(paste0("plots/conts_sim_unif_exp_compare_T", Tp, "_N", N, "_m", m, "_rho", rho0char, ".pdf"), p1to2, width=9, height=4, units="in", dpi=600)
+ggsave(paste0("plots/conts_sim_unif_exp_compare_T", Tp, "_N", N, "_m", m, "_rho", rho0char, ".jpg"), p1to2, width=9, height=4, units="in", dpi=800)
+ggsave(paste0("plots/conts_sim_unif_exp_compare_T", Tp, "_N", N, "_m", m, "_rho", rho0char, ".pdf"), p1to2, width=9, height=4, units="in", dpi=800)
+ggsave(paste0("plots/conts_sim_unif_exp_compare_T", Tp, "_N", N, "_m", m, "_rho", rho0char, ".eps"), p1to2, width=9, height=4, units="in", dpi=800)

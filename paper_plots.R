@@ -153,8 +153,9 @@ p4 <- compare_designs(df.long=long_ct(vars_T8_m150),
 mylegend <- g_legend(p1)
 title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(theta)[CCD])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
-ggsave("plots/conts_T4_8_m50_150_rho023.jpg", p1to4, width=9, height=7, units="in", dpi=600)
-ggsave("plots/conts_T4_8_m50_150_rho023.pdf", p1to4, width=9, height=7, units="in", dpi=600)
+ggsave("plots/conts_T4_8_m50_150_rho023.jpg", p1to4, width=9, height=7, units="in", dpi=800)
+ggsave("plots/conts_T4_8_m50_150_rho023.pdf", p1to4, width=9, height=7, units="in", dpi=800)
+ggsave("plots/conts_T4_8_m50_150_rho023.eps", p1to4, width=9, height=7, units="in", dpi=800)
 
 # Plot relative variance, HH vs continuous, all designs
 ylims <- c(0.2,5.0)
@@ -174,8 +175,9 @@ mylegend <- g_legend(p1)
 title <- expression(paste("Relative variance of treatment effect estimators, ",
                           Var(hat(theta)[UC])/Var(hat(theta)[CCD])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
-ggsave("plots/HH_vs_conts_50_150_rhoCD023_rhoUC.jpg", p1to4, width=9, height=7, units="in", dpi=600)
-ggsave("plots/HH_vs_conts_50_150_rhoCD023_rhoUC.pdf", p1to4, width=9, height=7, units="in", dpi=600)
+ggsave("plots/HH_vs_conts_50_150_rhoCD023_rhoUC.jpg", p1to4, width=9, height=7, units="in", dpi=800)
+ggsave("plots/HH_vs_conts_50_150_rhoCD023_rhoUC.pdf", p1to4, width=9, height=7, units="in", dpi=800)
+ggsave("plots/HH_vs_conts_50_150_rhoCD023_rhoUC.eps", p1to4, width=9, height=7, units="in", dpi=800)
 
 # Plot relative variance, discrete vs continuous, all designs
 ylims <- c(0.8,2.0)
@@ -195,8 +197,8 @@ mylegend <- g_legend(p1)
 title <- expression(paste("Relative variance of treatment effect estimators, ",
                           Var(hat(theta)[DCD])/Var(hat(theta)[CCD])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
-ggsave("plots/dt_vs_conts_50_150_rho023.jpg", p1to4, width=9, height=7, units="in", dpi=600)
-ggsave("plots/dt_vs_conts_50_150_rho023.pdf", p1to4, width=9, height=7, units="in", dpi=600)
+ggsave("plots/dt_vs_conts_50_150_rho023.jpg", p1to4, width=9, height=7, units="in", dpi=800)
+ggsave("plots/dt_vs_conts_50_150_rho023.pdf", p1to4, width=9, height=7, units="in", dpi=800)
 
 # Plot relative variance, continuous, mean vs individual level, all designs
 vars_ind_mean_T4_m50 <- data.frame(long_ct(vars_T4_m50),
@@ -237,8 +239,9 @@ mylegend <- g_legend(p1)
 title <- expression(paste("Relative variance of treatment effect estimators, ",
                           Var(hat(theta)[CCD][mean])/Var(hat(theta)[CCD][ind])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
-ggsave("plots/conts_meanvsind_ratio_50_150_rho023.jpg", p1to4, width=9, height=7, units="in", dpi=600)
-ggsave("plots/conts_meanvsind_ratio_50_150_rho023.pdf", p1to4, width=9, height=7, units="in", dpi=600)
+ggsave("plots/conts_meanvsind_ratio_50_150_rho023.jpg", p1to4, width=9, height=7, units="in", dpi=800)
+ggsave("plots/conts_meanvsind_ratio_50_150_rho023.pdf", p1to4, width=9, height=7, units="in", dpi=800)
+ggsave("plots/conts_meanvsind_ratio_50_150_rho023.eps", p1to4, width=9, height=7, units="in", dpi=800)
 
 # Plot variance and relative variance, continuous, different rho0 values
 
@@ -274,8 +277,8 @@ p2 <- compare_designs_1by2(df.long=long_rel_HH_ct(vars_T4_m50_rho05),
 mylegend <- g_legend(p1)
 title <- expression(paste("4 periods, 50 subjects/cluster-period, ", rho, "=0.05"))
 p1to2 <- make_1x2_multiplot(p1, p2, mylegend, title=title)
-ggsave("plots/vars_T4_m50_rho05.jpg", p1to2, width=9, height=4, units="in", dpi=600)
-ggsave("plots/vars_T4_m50_rho05.pdf", p1to2, width=9, height=4, units="in", dpi=600)
+ggsave("plots/vars_T4_m50_rho05.jpg", p1to2, width=9, height=4, units="in", dpi=800)
+ggsave("plots/vars_T4_m50_rho05.pdf", p1to2, width=9, height=4, units="in", dpi=800)
 
 # Tp=4, m=10, rho0=0.01
 p1title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(theta)[CCD])))
@@ -288,8 +291,8 @@ p2 <- compare_designs_1by2(df.long=long_rel_HH_ct(vars_T4_m10_rho01),
 mylegend <- g_legend(p1)
 title <- expression(paste("4 periods, 10 subjects/cluster-period, ", rho, "=0.01"))
 p1to2 <- make_1x2_multiplot(p1, p2, mylegend, title=title)
-ggsave("plots/vars_T4_m10_rho01.jpg", p1to2, width=9, height=4, units="in", dpi=600)
-ggsave("plots/vars_T4_m10_rho01.pdf", p1to2, width=9, height=4, units="in", dpi=600)
+ggsave("plots/vars_T4_m10_rho01.jpg", p1to2, width=9, height=4, units="in", dpi=800)
+ggsave("plots/vars_T4_m10_rho01.pdf", p1to2, width=9, height=4, units="in", dpi=800)
 
 
 # Plot variances, continuous-time, continuous time parameterisation, all designs
@@ -305,8 +308,8 @@ p4 <- compare_designs(df.long=long_ct(vars_T8_m150_ct),
 mylegend <- g_legend(p1)
 title <- expression(paste("Variance of treatment effect estimator, ", Var(hat(theta)[CCD])))
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
-ggsave("plots/conts_T4_8_m50_150_rho022_ct.jpg", p1to4, width=9, height=7, units="in", dpi=600)
-ggsave("plots/conts_T4_8_m50_150_rho022_ct.pdf", p1to4, width=9, height=7, units="in", dpi=600)
+ggsave("plots/conts_T4_8_m50_150_rho022_ct.jpg", p1to4, width=9, height=7, units="in", dpi=800)
+ggsave("plots/conts_T4_8_m50_150_rho022_ct.pdf", p1to4, width=9, height=7, units="in", dpi=800)
 
 # Power plots
 effsize <- 0.2
@@ -333,5 +336,6 @@ p4 <- compare_designs(df.long=long_ct(pow_T8_m150),
 mylegend <- g_legend(p1)
 title <- paste0('Power to detect effect size of ', effsize, ', CCD')
 p1to4 <- make_2x2_multiplot(p1, p2, p3, p4, mylegend, title=title)
-ggsave("plots/power_conts_T4_8_m50_150_rho023.jpg", p1to4, width=9, height=7, units="in", dpi=600)
-ggsave("plots/power_conts_T4_8_m50_150_rho023.pdf", p1to4, width=9, height=7, units="in", dpi=600)
+ggsave("plots/power_conts_T4_8_m50_150_rho023.jpg", p1to4, width=9, height=7, units="in", dpi=800)
+ggsave("plots/power_conts_T4_8_m50_150_rho023.pdf", p1to4, width=9, height=7, units="in", dpi=800)
+ggsave("plots/power_conts_T4_8_m50_150_rho023.eps", p1to4, width=9, height=7, units="in", dpi=800)
